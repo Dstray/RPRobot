@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <sys/stat.h>
 
 static char*        dev_name = "/dev/video0";
 static int          frame_count = 10;

@@ -1,0 +1,51 @@
+20160121
+root@Robert:~/project# git clone https://github.com/Dstray/RPRobot.git
+Cloning into 'RPRobot'...
+fatal: Unable to find remote helper for 'https'
+
+root@Robert:~/project# git clone git@github.com:Dstray/RPRobot.git
+Cloning into 'RPRobot'...
+Host 'github.com' is not in the trusted hosts file.
+(fingerprint md5 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48)
+Do you want to continue connecting? (y/n) y
+ssh: Connection to git@github.com:22 exited: No auth methods could be used.
+fatal: The remote end hung up unexpectedly
+
+root@Robert:~/project# git clone git://github.com/Dstray/RPRobot.git
+Cloning into 'RPRobot'...
+remote: Counting objects: 8, done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 8 (delta 1), reused 4 (delta 0), pack-reused 0
+Receiving objects: 100% (8/8), done.
+Resolving deltas: 100% (1/1), done.
+
+root@Robert:~/project/RPRobot# git pull
+remote: Counting objects: 4, done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 4 (delta 1), reused 4 (delta 1), pack-reused 0
+Unpacking objects: 100% (4/4), done.
+From git://github.com/Dstray/RPRobot
+   4b83242..8af655c  master     -> origin/master
+/usr/libexec/git-core/git-pull: exec: line 1: git-merge: not found
+
+root@Robert:~/project/RPRobot# git pull origin master
+From git://github.com/Dstray/RPRobot
+ * branch            master     -> FETCH_HEAD
+/usr/libexec/git-core/git-pull: exec: line 1: git-merge: not found
+
+root@Robert:~/project/RPRobot# which git
+/usr/bin/git
+root@Robert:~/project/RPRobot# ln -s $(which git) /usr/libexec/git-core/git
+
+root@Robert:~/project/RPRobot# git pull
+Updating 4b83242..8af655c
+Fast-forward
+git-merge: xdiff/xutils.c: 345: xdl_hash_record: Assertion `*ptr == '\n'' failed.
+error: git-pull died of signal 6
+root@Robert:~/project/RPRobot# git status
+# On branch master
+nothing to commit (working directory clean)
+root@Robert:~/project/RPRobot# git pull origin master
+From git://github.com/Dstray/RPRobot
+ * branch            master     -> FETCH_HEAD
+Already up-to-date.

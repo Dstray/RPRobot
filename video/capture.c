@@ -14,9 +14,13 @@
 static char*        dev_name = "/dev/video0";
 static int          frame_count = 10;
 
-static void errno_exit(const char *s)
-{
+static void errno_exit(const char* s) {
     fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno));
+    exit(EXIT_FAILURE);
+}
+
+static void exception_exit(const char* s, const char* arg) {
+    fprintf(stderr, "Exception: %s %s\n", s, arg);
     exit(EXIT_FAILURE);
 }
 
@@ -80,9 +84,12 @@ int main(int argc, char** argv) {
             force_format++;
             break;*/
         case 'c':
+            errno = 0;
             frame_count = strtol(optarg, NULL, 0);
+            if (errno)
+                errno_exit(optarg);
             if (frame_count <= 0)
-                errno_exit("Invalid frame number");
+                exception_exit("Invalid frame number", optarg);
             break;
         default:
             print_usage(stderr, argc, argv);

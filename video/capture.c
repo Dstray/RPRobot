@@ -1,0 +1,94 @@
+/*
+ *  V4L2 video capture
+ *  Author: Dstray
+ *  Reference: http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <errno.h>
+#include <fcntl.h>
+#include <getopt.h>
+
+static char*        dev_name = "/dev/video0";
+static int          frame_count = 10;
+
+static void errno_exit(const char *s)
+{
+    fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno));
+    exit(EXIT_FAILURE);
+}
+
+static void print_usage(FILE* fp, int argc, char** argv) {
+    fprintf(fp,
+        "Usage: %s [options]\n\n"
+        "Version 1.3\n"
+        "Options:\n"
+        "-d | --device name   Video device name [%s]\n"
+        "-h | --help          Print this message\n"
+        //"-m | --mmap          Use memory mapped buffers [default]\n"
+        //"-r | --read          Use read() calls\n"
+        //"-u | --userp         Use application allocated buffers\n"
+        //"-o | --output        Outputs stream to stdout\n"
+        //"-f | --format        Force format to 640x480 YUYV\n"
+        "-c | --count         Number of frames to grab [%i]\n"
+        "",
+        argv[0], dev_name, frame_count);
+}
+
+static const char short_options[] = "d:hmruofc:";
+
+static const struct option long_options[] = {
+//  { name,     has_arg,            flag, val }
+    { "device", required_argument,  NULL, 'd' },
+    { "help",   no_argument,        NULL, 'h' },
+    //{ "mmap",   no_argument,        NULL, 'm' },
+    //{ "read",   no_argument,        NULL, 'r' },
+    //{ "userp",  no_argument,        NULL, 'u' },
+    //{ "output", no_argument,        NULL, 'o' },
+    //{ "format", no_argument,        NULL, 'f' },
+    { "count",  required_argument,  NULL, 'c' },
+    { 0, 0, 0, 0 } // last element
+};
+
+int main(int argc, char** argv) {
+    int c, ind;
+    while ((c = getopt_long(argc, argv, short_options, long_options, &ind)) != -1) {
+        switch (c) {
+        case 0: //long_options flag not NULL
+            break;
+        case 'd':
+            dev_name = optarg;
+            break;
+        case 'h':
+            print_usage(stdout, argc, argv);
+            exit(EXIT_SUCCESS);/*
+        case 'm':
+            io = IO_METHOD_MMAP;
+            break;
+        case 'r':
+            io = IO_METHOD_READ;
+            break;
+        case 'u':
+            io = IO_METHOD_USERPTR;
+            break;
+        case 'o':
+            out_buf++;
+            break;
+        case 'f':
+            force_format++;
+            break;*/
+        case 'c':
+            frame_count = strtol(optarg, NULL, 0);
+            if (frame_count <= 0)
+                errno_exit("Invalid frame number");
+            break;
+        default:
+            print_usage(stderr, argc, argv);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return 0;
+}

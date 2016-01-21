@@ -19,9 +19,32 @@ static void errno_exit(const char* s) {
     exit(EXIT_FAILURE);
 }
 
-static void exception_exit(const char* s, const char* arg) {
-    fprintf(stderr, "Exception: %s %s\n", s, arg);
+static void exception_exit(const char* s1, const char* s2) {
+    fprintf(stderr, "Exception: %s %s\n", s1, s2);
     exit(EXIT_FAILURE);
+}
+
+int open_device(const char* dev_name) {
+    struct stat st;
+    if (stat(dev_name, &st) == -1) {
+        fprintf(stderr, "Cannot identify '%s': Error %d, %s\n",
+            dev_name, errno, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    if (!S_ISCHR(st.st_mode))
+        exception_exit(dev_name, "is not character device.");
+    int fd = open(dev_name, O_RDWR | O_NONBLOCK);
+    if (fd == -1) {
+        fprintf(stderr, "Cannot open '%s': Error %d, %s\n",
+            dev_name, errno, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return fd;
+}
+
+void close_device(int fd) {
+    if (close(fd) == -1)
+        errno_exit("Device Close");
 }
 
 static void print_usage(FILE* fp, int argc, char** argv) {
@@ -96,6 +119,9 @@ int main(int argc, char** argv) {
             exit(EXIT_FAILURE);
         }
     }
+
+    int fd = open_device(dev_name);
+    close_device(fd);
 
     return 0;
 }

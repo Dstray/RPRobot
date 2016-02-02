@@ -1,12 +1,3 @@
-/*
- *  V4L2 video capture
- *  Author: Dstray
- *  Reference: http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <fcntl.h>
 #include <getopt.h>
 #include <sys/ioctl.h>

@@ -7,6 +7,7 @@
 #ifndef __EXCEPTION_H__
 #define __EXCEPTION_H__ 1
 
+#include "common.h"
 #include <errno.h>
 
 static void errno_exit(const char* s);

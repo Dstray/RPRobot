@@ -1,8 +1,4 @@
-#include <fcntl.h>
 #include <getopt.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-
 #include "capture.h"
 
 static char*        dev_name = "/dev/video0";

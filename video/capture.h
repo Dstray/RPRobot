@@ -8,5 +8,9 @@
 #define __CAPTURE_H__ 1
 
 #include "../common/exception.h"
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <linux/videodev2.h>
 
 #endif /* capture.h */

@@ -10,7 +10,7 @@
 #include "common.h"
 #include <errno.h>
 
-extern static void errno_exit(const char* s);
-extern static void exception_exit(const char* s1, const char* s2);
+extern void errno_exit(const char* s);
+extern void exception_exit(const char* s1, const char* s2);
 
 #endif /* exception.h */

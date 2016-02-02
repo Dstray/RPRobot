@@ -7,22 +7,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
+
+#include "capture.h"
 
 static char*        dev_name = "/dev/video0";
 static int          frame_count = 10;
 
-static void errno_exit(const char* s) {
-    fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno));
-    exit(EXIT_FAILURE);
+static int xioctl(int fd, int request, void* argp) {
+    int r;
+    do {
+        r = ioctl(fd, request, argp);
+    } while (r == -1 && errno = EINTR); // Interrupted function call
+    return r;
 }
 
-static void exception_exit(const char* s1, const char* s2) {
-    fprintf(stderr, "Exception: %s %s\n", s1, s2);
-    exit(EXIT_FAILURE);
+void init_device(int fd, const char* dev_name) {
+    struct v4l2_capability cap;
+    if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) { //Query device capabilities
+        if (errno == EINVAL)
+            exception_exit(dev_name, "is not V4L2 device");
+        else
+            errno_exit("VIDIOC_QUERYCAP");
+    }
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+        
+    }
 }
 
 int open_device(const char* dev_name) {
@@ -51,7 +64,7 @@ void close_device(int fd) {
 static void print_usage(FILE* fp, int argc, char** argv) {
     fprintf(fp,
         "Usage: %s [options]\n\n"
-        "Version 1.3\n"
+        "Version 1.0\n"
         "Options:\n"
         "-d | --device name   Video device name [%s]\n"
         "-h | --help          Print this message\n"
@@ -122,6 +135,7 @@ int main(int argc, char** argv) {
     }
 
     int fd = open_device(dev_name);
+    init_device(fd);
     close_device(fd);
 
     return 0;

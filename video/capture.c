@@ -12,7 +12,7 @@ static int xioctl(int fd, int request, void* argp) {
     int r;
     do {
         r = ioctl(fd, request, argp);
-    } while (r == -1 && errno = EINTR); // Interrupted function call
+    } while (r == -1 && errno == EINTR); // Interrupted function call
     return r;
 }
 
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     }
 
     int fd = open_device(dev_name);
-    init_device(fd);
+    init_device(fd, dev_name);
     close_device(fd);
 
     return 0;

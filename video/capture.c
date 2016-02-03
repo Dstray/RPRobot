@@ -15,6 +15,7 @@ static int xioctl(int fd, int request, void* argp) {
 
 void init_device(int fd, const char* dev_name, enum io_method io) {
     struct v4l2_capability cap;
+    // Check capabilities
     if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) { // Query device capabilities
         if (errno == EINVAL)
             exception_exit(dev_name, "is not V4L2 device");
@@ -23,7 +24,7 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     }
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
         exception_exit(dev_name, "is not video capture device");
-    
+
 }
 
 int open_device(const char* dev_name) {

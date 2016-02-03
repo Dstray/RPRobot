@@ -6,6 +6,13 @@ Video capture via V4L2.
 ### Options
 [getopt_long](http://linux.die.net/man/3/getopt_long) @**getopt.h**
 
+### I/O Method
+**[Read/Write](http://linuxtv.org/downloads/v4l-dvb-apis/io.html#rw)**
+* IO_METHOD_READ
+**[Streaming I/O](http://linuxtv.org/downloads/v4l-dvb-apis/mmap.html)**
+* IO_METHOD_MMAP
+* IO_METHOD_USERPTR
+
 ### Open & Close
 **open_device**
 Check if it's a character device and open it.  
@@ -28,6 +35,7 @@ Check if it's a character device and open it.
 * parameters
   * fd: file descripter returned from _open_device_.
   * dev_name: name of the device.
+  * io: specified I/O method.
 
 ## Packages
 libv4l  

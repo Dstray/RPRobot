@@ -13,8 +13,7 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void init_device(int fd, const char* dev_name, enum io_method io) {
-    // Check device capabilities
+void check_dev_cap(int fd, const char* dev_name, enum io_method io) {
     struct v4l2_capability cap;
     if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) {
         if (errno == EINVAL)
@@ -22,6 +21,7 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
         else
             errno_exit("VIDIOC_QUERYCAP");
     }
+    fprintf(stdout, "Device Capabilities: 0x%08x\n", cap.capabilities);
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
         exception_exit(dev_name, "is not video capture device");
     switch (io) {
@@ -35,17 +35,32 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
             exception_exit(dev_name, "does not support streaming i/o");
         break;
     }
+}
 
+void set_cropping_rect(int fd, const char* dev_name) {
     // Check the cropping limits
     struct v4l2_cropcap cropcap;
     CLEAR(cropcap);
     cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (xioctl(fd, VIDIOC_CROPCAP, &cropcap) == -1) {
+    if (xioctl(fd, VIDIOC_CROPCAP, &cropcap) == 0) {
+        fprintf(stdout, "Video cropping and scaling abilities:\n");
+        fprintf(stdout,
+            "  bounds: { left:%d, top:%d, width:%d, height:%d }\n",
+            cropcap.bounds.left, cropcap.bounds.top,
+            cropcap.bounds.width, cropcap.bounds,height);
+        fprintf(stdout,
+            "  defrect: { left:%d, top:%d, width:%d, height:%d }\n",
+            cropcap.defrect.left, cropcap.defrect.top,
+            cropcap.defrect.width, cropcap.defrect,height);
+        fprintf(stdout, "  pixelaspect: %d:%d\n",
+            cropcap.pixelaspect.numerator,
+            cropcap.pixelaspect.denominator);
+    } else {
         if (errno == EINVAL)
             exception_report("struct v4l2_cropcap type", "is invalid");
         else
             errno_report("VIDIOC_CROPCAP");
-    } else fprintf(stdout, "Check the cropping limits OK\n");
+    }
     // Set the current cropping rectangle
     struct v4l2_crop crop;
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -56,7 +71,13 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
         else
             errno_report("VIDIOC_S_CROP");
     }
+}
 
+void init_device(int fd, const char* dev_name, enum io_method io) {
+    // Check device capabilities
+    check_dev_cap(fd, dev_name, io);
+    // Set the current cropping rectangle
+    set_cropping_rect(fd, dev_name);
     // 
     struct v4l2_format fmt;
     unsigned int min;

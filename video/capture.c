@@ -47,7 +47,7 @@ void set_cropping_rect(int fd, const char* dev_name) {
         fprintf(stdout,
             "  bounds: { left:%d, top:%d, width:%d, height:%d }\n",
             cropcap.bounds.left, cropcap.bounds.top,
-            cropcap.bounds.width, cropcap.bounds,height);
+            cropcap.bounds.width, cropcap.bounds.height);
         fprintf(stdout,
             "  defrect: { left:%d, top:%d, width:%d, height:%d }\n",
             cropcap.defrect.left, cropcap.defrect.top,

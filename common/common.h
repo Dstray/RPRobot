@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 

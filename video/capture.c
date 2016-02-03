@@ -42,10 +42,10 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (xioctl(fd, VIDIOC_CROPCAP, &cropcap) == -1) {
         if (errno == EINVAL)
-            exception_report("struct v4l2_cropcap type is invalid");
+            exception_report("struct v4l2_cropcap type", "is invalid");
         else
             errno_report("VIDIOC_CROPCAP");
-    } else fprintf(stdio, "Check the cropping limits OK\n");
+    } else fprintf(stdout, "Check the cropping limits OK\n");
     // Set the current cropping rectangle
     struct v4l2_crop crop;
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

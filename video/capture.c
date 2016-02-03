@@ -14,8 +14,8 @@ static int xioctl(int fd, int request, void* argp) {
 }
 
 void init_device(int fd, const char* dev_name, enum io_method io) {
-    struct v4l2_capability cap;
     // Check capabilities
+    struct v4l2_capability cap;
     if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) { // Query device capabilities
         if (errno == EINVAL)
             exception_exit(dev_name, "is not V4L2 device");
@@ -35,6 +35,8 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
             exception_exit(dev_name, "does not support streaming i/o");
         break;
     }
+
+    // Select video input
 }
 
 int open_device(const char* dev_name) {

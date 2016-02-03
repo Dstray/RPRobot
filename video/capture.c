@@ -73,13 +73,37 @@ void set_cropping_rect(int fd, const char* dev_name) {
     }
 }
 
+void set_image_format(int fd, struct v4l2_format* pfmt) {
+    CLEAR(*pfmt);
+    pfmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(fd, VIDIOC_G_FMT, pfmt) == -1)
+        errno_exit("VIDIOC_G_FMT");
+    struct v4l2_pix_format* pix = pfmt->fmt.pix;
+    if (0) {
+        pix->width       = 640;
+        pix->height      = 480;
+        pix->pixelformat = V4L2_PIX_FMT_YUYV;
+        pix->field       = V4L2_FIELD_INTERLACED;
+        if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
+            errno_exit("VIDIOC_S_FMT");
+    }
+    unsigned pf =  pix->pixelformat;
+    fprintf(stdout, "Information of image format:\n");
+    fprintf(stdout, "  width: %d, height: %d\n", pix->width, pix->height);
+    fprintf(stdout, "  pixel format: %c%c%c%c\n",
+        pf >> 24, pf >> 16, pf >> 8, pf >> 0);
+    fprintf(stdout, "  field order: %d\n", pix->field);
+}
+
 void init_device(int fd, const char* dev_name, enum io_method io) {
     // Check device capabilities
     check_dev_cap(fd, dev_name, io);
-    // Set the current cropping rectangle
+    // Set the cropping rectangle
     set_cropping_rect(fd, dev_name);
-    // 
+    // Set the image format
     struct v4l2_format fmt;
+    set_image_format(fd, &fmt);
+    //
     unsigned int min;
 }
 

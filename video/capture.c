@@ -78,7 +78,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
     pfmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (xioctl(fd, VIDIOC_G_FMT, pfmt) == -1)
         errno_exit("VIDIOC_G_FMT");
-    struct v4l2_pix_format* pix = pfmt->fmt.pix;
+    struct v4l2_pix_format* pix = &(pfmt->fmt.pix);
     if (0) {
         pix->width       = 640;
         pix->height      = 480;

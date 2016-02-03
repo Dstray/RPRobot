@@ -10,4 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
+
 #endif /* common.h */

@@ -4,7 +4,7 @@
 Video capture via V4L2.
 
 ### Options
-[getopt_long](http://linux.die.net/man/3/getopt_long) @<getopt.h>
+[getopt_long](http://linux.die.net/man/3/getopt_long) @[getopt.h]
 
 ### I/O Method
 **[Read/Write](http://linuxtv.org/downloads/v4l-dvb-apis/io.html#rw)**
@@ -22,14 +22,14 @@ Check if it's a character device and open it.
 * return value
   * file descriptor.
 * referenced functions
-  * [stat](http://linux.die.net/man/2/stat) @**sys/stat.h**  
-  * [open](http://linuxtv.org/downloads/v4l-dvb-apis/func-open.html) @**fcntl.h**
+  * [stat](http://linux.die.net/man/2/stat) @[sys/stat.h]  
+  * [open](http://linuxtv.org/downloads/v4l-dvb-apis/func-open.html) @[fcntl.h]
 
 **close_device**
 * parameters
   * fd: file descripter returned from _open_device_.
 * referenced functions
-  * [close](http://linuxtv.org/downloads/v4l-dvb-apis/func-close.html) @**unistd.h**  
+  * [close](http://linuxtv.org/downloads/v4l-dvb-apis/func-close.html) @[unistd.h]  
 
 ### Initialize
 **init_device**
@@ -38,11 +38,13 @@ Check if it's a character device and open it.
   * dev_name: name of the device.
   * io: specified I/O method.
 * referenced functions
-  * [ioctl VIDIOC_QUERYCAP](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html) @**sys/ioctl.h**&**linux/videodev2.h**  
+  * [ioctl VIDIOC_QUERYCAP](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html) @[sys/ioctl.h]&[linux/videodev2.h]  
+  * [ioctl VIDIOC_CROPCAP](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-cropcap.html)  
+  * [ioctl VIDIOC_S_CROP](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-crop.html)  
 
 ## Packages
 libv4l  
-v4l-utils
+v4l-utils  
 kmod-video-uvc
 
 ## Devices

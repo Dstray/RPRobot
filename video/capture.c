@@ -14,9 +14,9 @@ static int xioctl(int fd, int request, void* argp) {
 }
 
 void init_device(int fd, const char* dev_name, enum io_method io) {
-    // Check capabilities
+    // Check device capabilities
     struct v4l2_capability cap;
-    if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) { // Query device capabilities
+    if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) {
         if (errno == EINVAL)
             exception_exit(dev_name, "is not V4L2 device");
         else
@@ -36,7 +36,30 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
         break;
     }
 
-    // Select video input
+    // Check the cropping limits
+    struct v4l2_cropcap cropcap;
+    CLEAR(cropcap);
+    cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(fd, VIDIOC_CROPCAP, &cropcap) == -1) {
+        if (errno == EINVAL)
+            exception_report("struct v4l2_cropcap type is invalid");
+        else
+            errno_report("VIDIOC_CROPCAP");
+    }
+    // Set the current cropping rectangle
+    struct v4l2_crop crop;
+    crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    crop.c = cropcap.defrect;
+    if (xioctl(fd, VIDIOC_S_CROP, &crop) == -1) {
+        if (errno == EINVAL)
+            exception_report("Cropping is not supported");
+        else
+            errno_report("VIDIOC_S_CROP");
+    }
+
+    // 
+    struct v4l2_format fmt;
+    unsigned int min;
 }
 
 int open_device(const char* dev_name) {

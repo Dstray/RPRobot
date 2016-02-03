@@ -12,6 +12,7 @@
 
 #define errno_report(s) fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno))
 #define exception_report(s) fprintf(stderr, "Exception: %s\n", s)
+#define exception_report(s1, s2) fprintf(stderr, "Exception: %s %s\n", s1, s2)
 
 extern void errno_exit(const char* s);
 extern void exception_exit(const char* s1, const char* s2);

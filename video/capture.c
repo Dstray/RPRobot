@@ -51,7 +51,7 @@ void set_cropping_rect(int fd, const char* dev_name) {
         fprintf(stdout,
             "  defrect: { left:%d, top:%d, width:%d, height:%d }\n",
             cropcap.defrect.left, cropcap.defrect.top,
-            cropcap.defrect.width, cropcap.defrect,height);
+            cropcap.defrect.width, cropcap.defrect.height);
         fprintf(stdout, "  pixelaspect: %d:%d\n",
             cropcap.pixelaspect.numerator,
             cropcap.pixelaspect.denominator);

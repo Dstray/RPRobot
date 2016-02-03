@@ -13,4 +13,8 @@
 #include <sys/stat.h>
 #include <linux/videodev2.h>
 
+extern int open_device(const char* dev_name);
+extern void init_device(int fd, const char* dev_name);
+extern void close_device(int fd);
+
 #endif /* capture.h */

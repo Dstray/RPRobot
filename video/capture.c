@@ -20,9 +20,9 @@ void init_device(int fd, const char* dev_name) {
         else
             errno_exit("VIDIOC_QUERYCAP");
     }
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-        
-    }
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+        exception_exit(dev_name, "is not video capture device");
+    
 }
 
 int open_device(const char* dev_name) {

@@ -23,9 +23,7 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     }
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
         exception_exit(dev_name, "is not video capture device");
-    if (!(cap.capabilities & V4L2_CAP_AUDIO))
-        exception_exit(dev_name, "is not audio device"); ////
-
+    
 }
 
 int open_device(const char* dev_name) {

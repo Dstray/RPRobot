@@ -32,6 +32,7 @@ Check if it's a character device and open it.
 ## Packages
 libv4l  
 v4l-utils
+kmod-video-uvc
 
 ## Devices
 a UVC Webcam: /dev/videoN

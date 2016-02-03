@@ -9,6 +9,7 @@ Video capture via V4L2.
 ### I/O Method
 **[Read/Write](http://linuxtv.org/downloads/v4l-dvb-apis/io.html#rw)**
 * IO_METHOD_READ
+
 **[Streaming I/O](http://linuxtv.org/downloads/v4l-dvb-apis/mmap.html)**
 * IO_METHOD_MMAP
 * IO_METHOD_USERPTR

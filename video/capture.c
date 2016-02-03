@@ -24,7 +24,17 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     }
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
         exception_exit(dev_name, "is not video capture device");
-
+    switch (io) {
+    case IO_METHOD_READ:
+        if (!(cap.capabilities & V4L2_CAP_READWRITE))
+            exception_exit(dev_name, "does not support read i/o");
+        break;
+    case IO_METHOD_MMAP:
+    case IO_METHOD_USERPTR:
+        if (!(cap.capabilities & V4L2_CAP_STREAMING))
+            exception_exit(dev_name, "does not support streaming i/o");
+        break;
+    }
 }
 
 int open_device(const char* dev_name) {

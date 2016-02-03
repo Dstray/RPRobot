@@ -87,12 +87,15 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
         if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
             errno_exit("VIDIOC_S_FMT");
     }
-    unsigned pf =  pix->pixelformat;
+    unsigned min, pf = pix->pixelformat;
     fprintf(stdout, "Information of image format:\n");
     fprintf(stdout, "  width: %d, height: %d\n", pix->width, pix->height);
     fprintf(stdout, "  pixel format: %c%c%c%c\n",
-        pf >> 24, pf >> 16, pf >> 8, pf >> 0);
+        pf >> 0, pf >> 8, pf >> 16, pf >> 24);
     fprintf(stdout, "  field order: %d\n", pix->field);
+    fprintf(stdout, "  bytes per line: %u\n", pix->bytesperline);
+    fprintf(stdout, "  image size: %u bytes\n", pix->sizeimage);
+    fprintf(stdout, "  color space: %u\n", pix->colorspace);
 }
 
 void init_device(int fd, const char* dev_name, enum io_method io) {
@@ -104,7 +107,6 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     struct v4l2_format fmt;
     set_image_format(fd, &fmt);
     //
-    unsigned int min;
 }
 
 int open_device(const char* dev_name) {

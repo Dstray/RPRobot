@@ -8,13 +8,15 @@ Video capture via V4L2.
 
 ### Open & Close
 **open_device**
+Check if it's a character device and open it.  
 * parameters
   * dev_name: name of the device.
 * return value
   * file descriptor.
 * referenced functions
   * [stat](http://linux.die.net/man/2/stat) @**sys/stat.h**  
-  * [open](http://linuxtv.org/downloads/v4l-dvb-apis/func-open.html) @**fcntl.h**  
+  * [open](http://linuxtv.org/downloads/v4l-dvb-apis/func-open.html) @**fcntl.h**
+
 **close_device**
 * parameters
   * fd: file descripter returned from _open_device_.

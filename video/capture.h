@@ -13,8 +13,14 @@
 #include <sys/stat.h>
 #include <linux/videodev2.h>
 
+enum io_method {
+    IO_METHOD_READ,
+    IO_METHOD_MMAP,
+    IO_METHOD_USERPTR
+};
+
 extern int open_device(const char* dev_name);
-extern void init_device(int fd, const char* dev_name);
+extern void init_device(int fd, const char* dev_name, enum io_method io);
 extern void close_device(int fd);
 
 #endif /* capture.h */

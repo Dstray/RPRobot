@@ -1,8 +1,9 @@
 #include <getopt.h>
 #include "capture.h"
 
-static char*        dev_name = "/dev/video0";
-static int          frame_count = 10;
+static char*            dev_name = "/dev/video0";
+static enum io_method   io = IO_METHOD_MMAP;
+static int              frame_count = 10;
 
 static int xioctl(int fd, int request, void* argp) {
     int r;
@@ -12,9 +13,9 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void init_device(int fd, const char* dev_name) {
+void init_device(int fd, const char* dev_name, enum io_method io) {
     struct v4l2_capability cap;
-    if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) { //Query device capabilities
+    if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) { // Query device capabilities
         if (errno == EINVAL)
             exception_exit(dev_name, "is not V4L2 device");
         else
@@ -22,11 +23,13 @@ void init_device(int fd, const char* dev_name) {
     }
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
         exception_exit(dev_name, "is not video capture device");
-    
+    if (!(cap.capabilities & V4L2_CAP_AUDIO))
+        exception_exit(dev_name, "is not audio device"); ////
+
 }
 
 int open_device(const char* dev_name) {
-    struct stat st;
+    struct stat st; // Information of a file
     if (stat(dev_name, &st) == -1) {
         fprintf(stderr, "Cannot identify '%s': Error %d, %s\n",
             dev_name, errno, strerror(errno));
@@ -55,9 +58,9 @@ static void print_usage(FILE* fp, int argc, char** argv) {
         "Options:\n"
         "-d | --device name   Video device name [%s]\n"
         "-h | --help          Print this message\n"
-        //"-m | --mmap          Use memory mapped buffers [default]\n"
-        //"-r | --read          Use read() calls\n"
-        //"-u | --userp         Use application allocated buffers\n"
+        "-m | --mmap          Use memory mapped buffers [default]\n"
+        "-r | --read          Use read() calls\n"
+        "-u | --userp         Use application allocated buffers\n"
         //"-o | --output        Outputs stream to stdout\n"
         //"-f | --format        Force format to 640x480 YUYV\n"
         "-c | --count         Number of frames to grab [%i]\n"
@@ -71,9 +74,9 @@ static const struct option long_options[] = {
 //  { name,     has_arg,            flag, val }
     { "device", required_argument,  NULL, 'd' },
     { "help",   no_argument,        NULL, 'h' },
-    //{ "mmap",   no_argument,        NULL, 'm' },
-    //{ "read",   no_argument,        NULL, 'r' },
-    //{ "userp",  no_argument,        NULL, 'u' },
+    { "mmap",   no_argument,        NULL, 'm' },
+    { "read",   no_argument,        NULL, 'r' },
+    { "userp",  no_argument,        NULL, 'u' },
     //{ "output", no_argument,        NULL, 'o' },
     //{ "format", no_argument,        NULL, 'f' },
     { "count",  required_argument,  NULL, 'c' },
@@ -91,7 +94,7 @@ int main(int argc, char** argv) {
             break;
         case 'h':
             print_usage(stdout, argc, argv);
-            exit(EXIT_SUCCESS);/*
+            exit(EXIT_SUCCESS);
         case 'm':
             io = IO_METHOD_MMAP;
             break;
@@ -100,7 +103,7 @@ int main(int argc, char** argv) {
             break;
         case 'u':
             io = IO_METHOD_USERPTR;
-            break;
+            break;/*
         case 'o':
             out_buf++;
             break;
@@ -122,7 +125,7 @@ int main(int argc, char** argv) {
     }
 
     int fd = open_device(dev_name);
-    init_device(fd, dev_name);
+    init_device(fd, dev_name, io);
     close_device(fd);
 
     return 0;

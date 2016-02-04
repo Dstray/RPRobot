@@ -37,24 +37,28 @@ void check_dev_cap(int fd, const char* dev_name, enum io_method io) {
     }
 }
 
+void fprint_cropcap(FILE* stream, struct v4l2_cropcap* pcap) {
+    fprintf(stream, "Video cropping and scaling abilities:\n");
+    fprintf(stream,
+        "  bounds: { left:%d, top:%d, width:%d, height:%d }\n",
+        pcap->bounds.left, pcap->bounds.top,
+        pcap->bounds.width, pcap->bounds.height);
+    fprintf(stream,
+        "  defrect: { left:%d, top:%d, width:%d, height:%d }\n",
+        pcap->defrect.left, pcap->defrect.top,
+        pcap->defrect.width, pcap->defrect.height);
+    fprintf(stream, "  pixelaspect: %d:%d\n",
+        pcap->pixelaspect.numerator,
+        pcap->pixelaspect.denominator);
+}
+
 void set_cropping_rect(int fd, const char* dev_name) {
     // Check the cropping limits
     struct v4l2_cropcap cropcap;
     CLEAR(cropcap);
     cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (xioctl(fd, VIDIOC_CROPCAP, &cropcap) == 0) {
-        fprintf(stdout, "Video cropping and scaling abilities:\n");
-        fprintf(stdout,
-            "  bounds: { left:%d, top:%d, width:%d, height:%d }\n",
-            cropcap.bounds.left, cropcap.bounds.top,
-            cropcap.bounds.width, cropcap.bounds.height);
-        fprintf(stdout,
-            "  defrect: { left:%d, top:%d, width:%d, height:%d }\n",
-            cropcap.defrect.left, cropcap.defrect.top,
-            cropcap.defrect.width, cropcap.defrect.height);
-        fprintf(stdout, "  pixelaspect: %d:%d\n",
-            cropcap.pixelaspect.numerator,
-            cropcap.pixelaspect.denominator);
+        fprint_cropcap(stdout, &cropcap);
     } else {
         if (errno == EINVAL)
             exception_report("struct v4l2_cropcap type", "is invalid");
@@ -73,6 +77,41 @@ void set_cropping_rect(int fd, const char* dev_name) {
     }
 }
 
+void fprint_image_format(FILE* stream, struct v4l2_pix_format* pix) {
+    unsigned pf = pix->pixelformat;
+    fprintf(stream, "Information of image format:\n");
+    fprintf(stream, "  width: %d, height: %d\n", pix->width, pix->height);
+    fprintf(stream, "  pixel format: %c%c%c%c\n",
+        pf >> 0, pf >> 8, pf >> 16, pf >> 24);
+    fprintf(stream, "  field order: %d\n", pix->field);
+    fprintf(stream, "  bytes per line: %u\n", pix->bytesperline);
+    fprintf(stream, "  image size: %u bytes\n", pix->sizeimage);
+    fprintf(stream, "  color space: %u\n", pix->colorspace);
+}
+
+int list_supported_image_formats(int fd) {
+    struct v4l2_fmtdesc fmtdesc;
+    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmtdesc.index = 0;
+    unsigned pf;
+    fprintf(stdout, "Enumerate image formats:\n");
+    fprintf(stdout, "  index   pixelformat flags   description\n");
+    while (1) {
+        if (xioctl(fd, VIDIOC_ENUM_FMT, &fmtdesc) == -1) {
+            if (errno == EINVAL)
+                break;
+            else
+                errno_exit("VIDIOC_ENUM_FMT");
+        }
+        pf = fmtdesc.pixelformat;
+        fprintf(stdout, "  %02d      ", fmtdesc.index ++);
+        fprintf(stdout, "%c%c%c%c        ",
+            pf >> 0, pf >> 8, pf >> 16, pf >> 24);
+        fprintf(stdout, "0x%04x  ", fmtdesc.flags);
+        fprintf(stdout, "%s\n", fmtdesc.description);
+    }
+}
+
 void set_image_format(int fd) {
     struct v4l2_format fmt;
     CLEAR(fmt);
@@ -88,15 +127,7 @@ void set_image_format(int fd) {
         if (xioctl(fd, VIDIOC_S_FMT, &fmt) == -1)
             errno_exit("VIDIOC_S_FMT");
     }
-    unsigned pf = pix->pixelformat;
-    fprintf(stdout, "Information of image format:\n");
-    fprintf(stdout, "  width: %d, height: %d\n", pix->width, pix->height);
-    fprintf(stdout, "  pixel format: %c%c%c%c\n",
-        pf >> 0, pf >> 8, pf >> 16, pf >> 24);
-    fprintf(stdout, "  field order: %d\n", pix->field);
-    fprintf(stdout, "  bytes per line: %u\n", pix->bytesperline);
-    fprintf(stdout, "  image size: %u bytes\n", pix->sizeimage);
-    fprintf(stdout, "  color space: %u\n", pix->colorspace);
+    fprint_image_format(stdout, pix);
 }
 
 void init_device(int fd, const char* dev_name, enum io_method io) {
@@ -105,9 +136,10 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     // Set the cropping rectangle
     set_cropping_rect(fd, dev_name);
     // Set the image format
+    list_supported_image_formats(fd);
     set_image_format(fd);
     
-    
+
 }
 
 int open_device(const char* dev_name) {

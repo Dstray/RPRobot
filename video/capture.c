@@ -13,6 +13,8 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
+void clear_device(struct buffer* bufs) {}
+
 void init_read_io(struct buffer* bufs, int buf_size) {}
 void init_mmap_io(int fd, const char* dev_name, struct buffer* bufs) {}
 void init_userptr_io(int fd, const char* dev_name,
@@ -255,8 +257,10 @@ int main(int argc, char** argv) {
         }
     }
 
+    struct buffer* imgbufs;
     int fd = open_device(dev_name);
-    init_device(fd, dev_name, io);
+    init_device(fd, dev_name, io, imgbufs);
+    clear_device(imgbufs);
     close_device(fd);
 
     return 0;

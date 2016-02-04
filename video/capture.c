@@ -13,9 +13,10 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-struct buffer* init_read_io() {}
-struct buffer* init_mmap_io() {}
-struct buffer* init_userptr_io() {}
+void init_read_io(struct buffer* bufs, int buf_size) {}
+void init_mmap_io(int fd, const char* dev_name, struct buffer* bufs) {}
+void init_userptr_io(int fd, const char* dev_name,
+    struct buffer* bufs, int buf_size) {}
 
 void check_dev_cap(int fd, const char* dev_name, enum io_method io) {
     struct v4l2_capability cap;
@@ -133,7 +134,8 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
     fprint_image_format(stdout, pix);
 }
 
-void init_device(int fd, const char* dev_name, enum io_method io) {
+void init_device(int fd, const char* dev_name,
+    enum io_method io, struct buffer* bufs) {
     // Check device capabilities
     check_dev_cap(fd, dev_name, io);
     // Set the cropping rectangle
@@ -145,13 +147,14 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     // Allocate buffers
     switch (io) {
     case IO_METHOD_READ:
-        init_read_io();
+        init_read_io(bufs, fmt.fmt.pix.sizeimage);
         break;
     case IO_METHOD_MMAP:
-        init_mmap_io();
+        init_mmap_io(fd, dev_name, bufs);
         break;
     case IO_METHOD_USERPTR:
-        init_userptr_io();
+        init_userptr_io(fd, dev_name,
+            bufs, fmt.fmt.pix.sizeimage);
         break;
     }
 }

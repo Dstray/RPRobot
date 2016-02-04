@@ -7,12 +7,12 @@ Video capture via V4L2.
 [getopt_long](http://linux.die.net/man/3/getopt_long) @[getopt.h]
 
 ### I/O Method
-**[Read/Write](http://linuxtv.org/downloads/v4l-dvb-apis/io.html#rw)**
-* IO_METHOD_READ
+**Read/Write**
+* [IO_METHOD_READ](http://linuxtv.org/downloads/v4l-dvb-apis/io.html#rw)
 
-**[Streaming I/O](http://linuxtv.org/downloads/v4l-dvb-apis/mmap.html)**
-* IO_METHOD_MMAP
-* IO_METHOD_USERPTR
+**Streaming I/O**
+* [IO_METHOD_MMAP](http://linuxtv.org/downloads/v4l-dvb-apis/mmap.html)
+* [IO_METHOD_USERPTR](http://linuxtv.org/downloads/v4l-dvb-apis/userp.html)
 
 ### Open & Close
 **open_device**  

@@ -28,15 +28,15 @@ void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
 
 void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
     fprintf(stream, "Buffer %d:\n", pbuf->index);
-    fprintf(stream, "  bytesused: %d\n", pbuf->bytesused);
-    fprintf(stream, "  flags:     0x%08x\n", pbuf->flags);
-    fprintf(stream, "  field:     %d\n", pbuf->field);
-    fprintf(stream, "  timestamp: %dus\n", pbuf->timestamp.tv_usec);
+    fprintf(stream, "  bytesused:    %d\n", pbuf->bytesused);
+    fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
+    fprintf(stream, "  field:        %d\n", pbuf->field);
+    fprintf(stream, "  timestamp:    %dus\n", pbuf->timestamp.tv_usec);
     fprintf(stream, "  timecode:\n");
     fprint_timecode(stream, &(pbuf->timecode));
-    fprintf(stream, "  sequence:  %d\n", pbuf->sequence);
-    fprintf(stream, "  memory:    %d\n", pbuf->memory);
-    fprintf(stream, "  length:    %d\n", pbuf->length);
+    fprintf(stream, "  sequence:     %d\n", pbuf->sequence);
+    fprintf(stream, "  memory:       %d\n", pbuf->memory);
+    fprintf(stream, "  length:       %d\n", pbuf->length);
 }
 
 void init_mmap_io(int fd, const char* dev_name) {
@@ -66,7 +66,7 @@ void init_mmap_io(int fd, const char* dev_name) {
         buf.index   = n_buffers;
         if (xioctl(fd, VIDIOC_QUERYBUF, &buf) == -1)
             errno_exit("VIDIOC_QUERYBUF");
-        fprint_buffer_status(stdout, &buf);
+        //fprint_buffer_status(stdout, &buf);
         // Map
         buffers[n_buffers].length = buf.length;
         buffers[n_buffers].start = mmap(

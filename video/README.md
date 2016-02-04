@@ -32,16 +32,49 @@ Check if it's a character device and open it.
   * [close](http://linuxtv.org/downloads/v4l-dvb-apis/func-close.html) @[unistd.h]  
 
 ### Initialize
-**init_device**
+**init_device**  
+1. Check device capabilities;
+2. Set the cropping rectangle;
+3. Set the image format
+* parameters
+  * fd: file descripter returned from _open_device_.
+  * dev_name: name of the device.
+  * io: specified I/O method.
+
+**check_dev_cap**  
+Query device capabilities and check according to I/O method.  
 * parameters
   * fd: file descripter returned from _open_device_.
   * dev_name: name of the device.
   * io: specified I/O method.
 * referenced functions
   * [ioctl VIDIOC_QUERYCAP](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html) @[sys/ioctl.h]&[linux/videodev2.h]  
+
+**set_cropping_rect**  
+Check the cropping limits and set the rectangle.  
+* parameters
+  * fd: file descripter returned from _open_device_.
+  * dev_name: name of the device.
+* referenced functions
   * [ioctl VIDIOC_CROPCAP](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-cropcap.html)  
   * [ioctl VIDIOC_S_CROP](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-crop.html)  
+
+**list_supported_image_formats**  
+List all supported image formats by the device.  
+* parameters
+  * fd: file descripter returned from _open_device_.
+* return value
+  * Number of supported image formats.
+* referenced functions
+  * [ioctl VIDIOC_ENUM_FMT](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-enum-fmt.html)  
+
+**set_image_format**  
+Set the image format exchanged between drivers and applications.  
+* parameters
+  * fd: file descripter returned from _open_device_.
+* referenced functions
   * [ioctl VIDIOC_G_FMT, VIDIOC_S_FMT](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html)  
+
 
 ## Packages
 libv4l  

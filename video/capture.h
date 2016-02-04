@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <linux/videodev2.h>
 
 enum io_method {

@@ -3,6 +3,8 @@
 
 static char*            dev_name = "/dev/video0";
 static enum io_method   io = IO_METHOD_MMAP;
+struct buffer*          buffers;
+static unsigned         n_buffers = 0;
 static int              frame_count = 10;
 
 static int xioctl(int fd, int request, void* argp) {
@@ -13,10 +15,73 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void init_read_io(struct buffer* bufs, int buf_size) {}
-void init_mmap_io(int fd, const char* dev_name, struct buffer* bufs) {}
-void init_userptr_io(int fd, const char* dev_name,
-    struct buffer* bufs, int buf_size) {}
+void init_read_io(int buf_size) {}
+
+void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
+    fprintf(stream, "    type:       %d\n", ptcode->type);
+    fprintf(stream, "    flags:      0x%08x\n", ptcode->flags);
+    fprintf(stream, "    frames:     %d\n", ptcode->frames);
+    fprintf(stream, "    seconds:    %d\n", ptcode->seconds);
+    fprintf(stream, "    minutes:    %d\n", ptcode->minutes);
+    fprintf(stream, "    hours:      %d\n", ptcode->hours);
+}
+
+void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
+    fprintf(stream, "Buffer %d:\n", pbuf->index);
+    fprintf(stream, "  bytesused: %d\n", pbuf->bytesused);
+    fprintf(stream, "  flags:     0x%08x\n", pbuf->flags);
+    fprintf(stream, "  field:     %d\n", pbuf->field);
+    fprintf(stream, "  timestamp: %dus\n", pbuf->timestamp.tv_usec);
+    fprintf(stream, "  timecode:\n");
+    fprint_timecode(stream, &(pbuf->timecode));
+    fprintf(stream, "  sequence:  %d\n", pbuf->sequence);
+    fprintf(stream, "  memory:    %d\n", pbuf->memory);
+    fprintf(stream, "  length:    %d\n", pbuf->length);
+}
+
+void init_mmap_io(int fd, const char* dev_name) {
+    // Request buffers
+    struct v4l2_requestbuffers req;
+    CLEAR(req);
+    req.count = 4;
+    req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req.memory = V4L2_MEMORY_MMAP;
+    if (xioctl(fd, VIDIOC_REQBUFS, &req) == -1) {
+        if (EINVAL == errno)
+            exception_exit(dev_name, "does not support memory mapping");
+        else
+            errno_exit("VIDIOC_REQBUFS");
+    }
+    if (req.count < 2)
+        exception_exit("Insufficient buffer memory on", dev_name);
+    // Map buffers
+    buffers = calloc(req.count, sizeof(*buffers));
+    if (!buffers)
+        exception_exit("Failed to alloc space for buffers", "");
+    struct v4l2_buffer buf;
+    for (n_buffers = 0; n_buffers != req.count; n_buffers++) {
+        // Query buffer status
+        CLEAR(buf);
+        buf.type    = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.index   = n_buffers;
+        if (xioctl(fd, VIDIOC_QUERYBUF, &buf) == -1)
+            errno_exit("VIDIOC_QUERYBUF");
+        fprint_buffer_status(stdout, &buf);
+        // Map
+        buffers[n_buffers].length = buf.length;
+        buffers[n_buffers].start = mmap(
+            NULL, // start anywhere
+            buf.length,
+            PROT_READ | PROT_WRITE,
+            MAP_SHARED, // recommended
+            fd, buf.m.offset
+        );
+        if (buffers[n_buffers].start == MAP_FAILED)
+            errno_exit("mmap");
+    }
+}
+
+void init_userptr_io(int fd, const char* dev_name, int buf_size) {}
 
 void check_dev_cap(int fd, const char* dev_name, enum io_method io) {
     struct v4l2_capability cap;
@@ -134,8 +199,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
     fprint_image_format(stdout, pix);
 }
 
-void init_device(int fd, const char* dev_name,
-    struct buffer* bufs, enum io_method io) {
+void init_device(int fd, const char* dev_name, enum io_method io) {
     // Check device capabilities
     check_dev_cap(fd, dev_name, io);
     // Set the cropping rectangle
@@ -147,14 +211,14 @@ void init_device(int fd, const char* dev_name,
     // Allocate buffers
     switch (io) {
     case IO_METHOD_READ:
-        init_read_io(bufs, fmt.fmt.pix.sizeimage);
+        init_read_io(fmt.fmt.pix.sizeimage);
         break;
     case IO_METHOD_MMAP:
-        init_mmap_io(fd, dev_name, bufs);
+        init_mmap_io(fd, dev_name);
         break;
     case IO_METHOD_USERPTR:
         init_userptr_io(fd, dev_name,
-            bufs, fmt.fmt.pix.sizeimage);
+            fmt.fmt.pix.sizeimage);
         break;
     }
 }
@@ -177,17 +241,19 @@ int open_device(const char* dev_name) {
     return fd;
 }
 
-void close_device(int fd, struct buffer* bufs, enum io_method io) {
+void close_device(int fd, enum io_method io) {
     // Clear buffers
+    int i;
     switch (io) {
-    case IO_METHOD_READ:
-        //
-        break;
     case IO_METHOD_MMAP:
-        //
+        for (i = 0; i != n_buffers; i++)
+            if (munmap(buffers[i].start, buffers[i].length) == -1)
+                errno_report("munmap");
         break;
+    case IO_METHOD_READ:
     case IO_METHOD_USERPTR:
-        //
+        for (i = 0; i != n_buffers; i++)
+            free(buffers[i].start);
         break;
     }
     // Close the device
@@ -268,10 +334,9 @@ int main(int argc, char** argv) {
         }
     }
 
-    struct buffer* imgbufs;
     int fd = open_device(dev_name);
-    init_device(fd, dev_name, imgbufs, io);
-    close_device(fd, imgbufs, io);
+    init_device(fd, dev_name, io);
+    close_device(fd, io);
 
     return 0;
 }

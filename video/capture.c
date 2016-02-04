@@ -13,8 +13,6 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void clear_device(struct buffer* bufs) {}
-
 void init_read_io(struct buffer* bufs, int buf_size) {}
 void init_mmap_io(int fd, const char* dev_name, struct buffer* bufs) {}
 void init_userptr_io(int fd, const char* dev_name,
@@ -179,7 +177,7 @@ int open_device(const char* dev_name) {
     return fd;
 }
 
-void close_device(int fd) {
+void close_device(int fd, struct buffer* bufs) {
     if (close(fd) == -1)
         errno_exit("Device Close");
 }

@@ -28,6 +28,7 @@ Check if it's a character device and open it.
 **close_device**
 * parameters
   * fd: file descripter returned from _open_device_.
+  * bufs: pointer to struct _buffer_ type buffers allocated through _init_device_.  
 * referenced functions
   * [close](http://linuxtv.org/downloads/v4l-dvb-apis/func-close.html) @[unistd.h]  
 
@@ -41,6 +42,7 @@ Check if it's a character device and open it.
   * fd: file descripter returned from _open_device_.
   * dev_name: name of the device.
   * io: specified I/O method.
+  * bufs: pointer to unallocated struct _buffer_ type buffers.  
 
 **check_dev_cap**  
 Query device capabilities and check according to I/O method.  

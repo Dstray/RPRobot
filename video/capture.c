@@ -13,6 +13,10 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
+struct buffer* init_read_io() {}
+struct buffer* init_mmap_io() {}
+struct buffer* init_userptr_io() {}
+
 void check_dev_cap(int fd, const char* dev_name, enum io_method io) {
     struct v4l2_capability cap;
     if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1) {
@@ -112,19 +116,18 @@ int list_supported_image_formats(int fd) {
     }
 }
 
-void set_image_format(int fd) {
-    struct v4l2_format fmt;
-    CLEAR(fmt);
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (xioctl(fd, VIDIOC_G_FMT, &fmt) == -1)
+void set_image_format(int fd, struct v4l2_format* pfmt) {
+    CLEAR(*pfmt);
+    pfmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(fd, VIDIOC_G_FMT, pfmt) == -1)
         errno_exit("VIDIOC_G_FMT");
-    struct v4l2_pix_format* pix = &(fmt.fmt.pix);
+    struct v4l2_pix_format* pix = &(pfmt->fmt.pix);
     if (0) {
         pix->width       = 640;
         pix->height      = 480;
         pix->pixelformat = V4L2_PIX_FMT_YUYV;
         pix->field       = V4L2_FIELD_INTERLACED;
-        if (xioctl(fd, VIDIOC_S_FMT, &fmt) == -1)
+        if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
             errno_exit("VIDIOC_S_FMT");
     }
     fprint_image_format(stdout, pix);
@@ -136,10 +139,21 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     // Set the cropping rectangle
     set_cropping_rect(fd, dev_name);
     // Set the image format
+    struct v4l2_format fmt;
     list_supported_image_formats(fd);
-    set_image_format(fd);
-    
-
+    set_image_format(fd, &fmt);
+    // Allocate buffers
+    switch (io) {
+    case IO_METHOD_READ:
+        init_read_io();
+        break;
+    case IO_METHOD_MMAP:
+        init_mmap_io();
+        break;
+    case IO_METHOD_USERPTR:
+        init_userptr_io();
+        break;
+    }
 }
 
 int open_device(const char* dev_name) {

@@ -13,4 +13,9 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+struct buffer {
+    void   *start;
+    size_t  length;
+};
+
 #endif /* common.h */

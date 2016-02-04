@@ -33,9 +33,10 @@ Check if it's a character device and open it.
 
 ### Initialize
 **init_device**  
-1. Check device capabilities;
-2. Set the cropping rectangle;
-3. Set the image format
+1. Check device capabilities;  
+2. Set the cropping rectangle;  
+3. Set the image format;  
+4. Initialize buffers.  
 * parameters
   * fd: file descripter returned from _open_device_.
   * dev_name: name of the device.
@@ -72,6 +73,7 @@ List all supported image formats by the device.
 Set the image format exchanged between drivers and applications.  
 * parameters
   * fd: file descripter returned from _open_device_.
+  * pfmt: pointer of an struct _v4l2_format_ type object.  
 * referenced functions
   * [ioctl VIDIOC_G_FMT, VIDIOC_S_FMT](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html)  
 

@@ -135,7 +135,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
 }
 
 void init_device(int fd, const char* dev_name,
-    enum io_method io, struct buffer* bufs) {
+    struct buffer* bufs, enum io_method io) {
     // Check device capabilities
     check_dev_cap(fd, dev_name, io);
     // Set the cropping rectangle
@@ -177,7 +177,20 @@ int open_device(const char* dev_name) {
     return fd;
 }
 
-void close_device(int fd, struct buffer* bufs) {
+void close_device(int fd, struct buffer* bufs, enum io_method io) {
+    // Clear buffers
+    switch (io) {
+    case IO_METHOD_READ:
+        //
+        break;
+    case IO_METHOD_MMAP:
+        //
+        break;
+    case IO_METHOD_USERPTR:
+        //
+        break;
+    }
+    // Close the device
     if (close(fd) == -1)
         errno_exit("Device Close");
 }
@@ -257,9 +270,8 @@ int main(int argc, char** argv) {
 
     struct buffer* imgbufs;
     int fd = open_device(dev_name);
-    init_device(fd, dev_name, io, imgbufs);
-    clear_device(imgbufs);
-    close_device(fd);
+    init_device(fd, dev_name, imgbufs, io);
+    close_device(fd, imgbufs, io);
 
     return 0;
 }

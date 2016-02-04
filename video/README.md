@@ -25,7 +25,8 @@ Check if it's a character device and open it.
   * [stat](http://linux.die.net/man/2/stat) @[sys/stat.h]  
   * [open](http://linuxtv.org/downloads/v4l-dvb-apis/func-open.html) @[fcntl.h]
 
-**close_device**
+**close_device**  
+Clear buffers and close the device.
 * parameters
   * fd: file descripter returned from _open_device_.
   * bufs: pointer to struct _buffer_ type buffers allocated through _init_device_.  

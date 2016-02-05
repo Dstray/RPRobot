@@ -22,7 +22,7 @@ enum io_method {
 
 extern int open_device(const char* dev_name);
 extern void init_device(int fd, const char* dev_name,
-    enum io_method io);
+    enum io_method io, int n_bufs);
 extern void start_capturing(int fd, enum io_method io);
 extern void stop_capturing(int fd, enum io_method io);
 extern void close_device(int fd, enum io_method io);

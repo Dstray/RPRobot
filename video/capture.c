@@ -59,8 +59,8 @@ void start_capturing(int fd, enum io_method io) {
         errno_exit("VIDIOC_STREAMON");
 }
 
-void init_read_io(int buf_size) {
-    n_buffers = 1;
+void init_read_io(int buf_size, int n_bufs) {
+    n_buffers = n_bufs;
     buffers = calloc(n_buffers, sizeof(*buffers));
     if (!buffers)
         exception_exit("Failed to alloc space for buffers", "");
@@ -96,9 +96,10 @@ void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
 }
 
 void init_stream_io(int fd, const char* dev_name,
-    struct v4l2_requestbuffers* preq, enum v4l2_memory mem_t) {
+    struct v4l2_requestbuffers* preq,
+    int n_bufs, enum v4l2_memory mem_t) {
     CLEAR(*preq);
-    preq->count = 4;
+    preq->count = n_bufs;
     preq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     preq->memory = mem_t;
     if (xioctl(fd, VIDIOC_REQBUFS, preq) == -1) {
@@ -116,10 +117,10 @@ void init_stream_io(int fd, const char* dev_name,
         exception_exit("Failed to alloc space for buffers", "");
 }
 
-void init_mmap_io(int fd, const char* dev_name) {
+void init_mmap_io(int fd, const char* dev_name, int n_bufs) {
     // Request buffers
     struct v4l2_requestbuffers req;
-    init_stream_io(fd, dev_name, &req, V4L2_MEMORY_MMAP);
+    init_stream_io(fd, dev_name, &req, n_bufs, V4L2_MEMORY_MMAP);
     // Map buffers
     struct v4l2_buffer buf;
     for (n_buffers = 0; n_buffers != req.count; n_buffers++) {
@@ -144,12 +145,13 @@ void init_mmap_io(int fd, const char* dev_name) {
     }
 }
 
-void init_userptr_io(int fd, const char* dev_name, int buf_size) {
+void init_userptr_io(int fd, const char* dev_name,
+    int buf_size, int n_bufs) {
     // Request buffers
     struct v4l2_requestbuffers req;
-    init_stream_io(fd, dev_name, &req, V4L2_MEMORY_USERPTR);
+    init_stream_io(fd, dev_name, &req, n_bufs, V4L2_MEMORY_USERPTR);
     // Allocate memory space for buffers
-    for (n_buffers = 0; n_buffers < 4; ++n_buffers) {
+    for (n_buffers = 0; n_buffers < n_bufs; ++n_buffers) {
         buffers[n_buffers].length = buf_size;
         buffers[n_buffers].start = malloc(buf_size);
         if (!buffers[n_buffers].start)
@@ -273,7 +275,8 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
     fprint_image_format(stdout, pix);
 }
 
-void init_device(int fd, const char* dev_name, enum io_method io) {
+void init_device(int fd, const char* dev_name,
+    enum io_method io, int n_bufs) {
     // Check device capabilities
     check_dev_cap(fd, dev_name, io);
     // Set the cropping rectangle
@@ -285,14 +288,14 @@ void init_device(int fd, const char* dev_name, enum io_method io) {
     // Allocate buffers
     switch (io) {
     case IO_METHOD_READ:
-        init_read_io(fmt.fmt.pix.sizeimage);
+        init_read_io(fmt.fmt.pix.sizeimage, n_bufs);
         break;
     case IO_METHOD_MMAP:
-        init_mmap_io(fd, dev_name);
+        init_mmap_io(fd, dev_name, n_bufs);
         break;
     case IO_METHOD_USERPTR:
         init_userptr_io(fd, dev_name,
-            fmt.fmt.pix.sizeimage);
+            fmt.fmt.pix.sizeimage, n_bufs);
         break;
     }
 }

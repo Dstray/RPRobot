@@ -43,6 +43,7 @@ Clear buffers and close the device.
   * fd: file descripter returned from _open_device_.
   * dev_name: name of the device.
   * io: specified I/O method.
+  * n_bufs: number of buffers for use.
 
 **check_dev_cap**  
 Query device capabilities and check according to I/O method.  
@@ -82,7 +83,8 @@ Set the image format exchanged between drivers and applications.
 **init_read_io**  
 Allocate buffers using _malloc_.  
 * parameters
-  * buf_size: size of each buffer in bytes.  
+  * buf_size: size of each buffer in bytes.
+  * n_bufs: number of buffers for use.
 
 **init_mmap_io**  
 Initialize Memory Mapping I/O:  
@@ -91,6 +93,7 @@ Map all the allocated buffers from device memory space to application memory spa
 * parameters
   * fd: file descripter of the device.
   * dev_name: name of the device.  
+  * n_bufs: number of buffers for use.
 * referenced functions
   * [ioctl VIDIOC_REQBUFS](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-reqbufs.html)
   * [mmap](http://linuxtv.org/downloads/v4l-dvb-apis/func-mmap.html) @[sys/mman.h]
@@ -102,7 +105,8 @@ Allocate buffers using _malloc_.
 * parameters
   * fd: file descripter of the device.
   * dev_name: name of the device.
-  * buf_size: size of each buffer in bytes.  
+  * buf_size: size of each buffer in bytes.
+  * n_bufs: number of buffers for use.  
 * referenced functions
   * [ioctl VIDIOC_REQBUFS](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-reqbufs.html)  
 

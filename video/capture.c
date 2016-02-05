@@ -103,7 +103,8 @@ void init_stream_io(int fd, const char* dev_name,
     preq->memory = mem_t;
     if (xioctl(fd, VIDIOC_REQBUFS, preq) == -1) {
         if (EINVAL == errno)
-            exception_exit(dev_name, "does not support memory mappin i/o");
+            exception_exit(dev_name,
+                "does not support this specified streaming i/o");
         else
             errno_exit("VIDIOC_REQBUFS");
     }

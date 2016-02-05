@@ -146,7 +146,7 @@ void init_mmap_io(int fd, const char* dev_name) {
 void init_userptr_io(int fd, const char* dev_name, int buf_size) {
     // Request buffers
     struct v4l2_requestbuffers req;
-    init_stream_io(fd, dev_name, &req, V4L2_MEMORY_USERPTR)
+    init_stream_io(fd, dev_name, &req, V4L2_MEMORY_USERPTR);
     // Allocate memory space for buffers
     for (n_buffers = 0; n_buffers < 4; ++n_buffers) {
         buffers[n_buffers].length = buffer_size;

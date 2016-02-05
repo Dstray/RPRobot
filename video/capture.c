@@ -149,8 +149,8 @@ void init_userptr_io(int fd, const char* dev_name, int buf_size) {
     init_stream_io(fd, dev_name, &req, V4L2_MEMORY_USERPTR);
     // Allocate memory space for buffers
     for (n_buffers = 0; n_buffers < 4; ++n_buffers) {
-        buffers[n_buffers].length = buffer_size;
-        buffers[n_buffers].start = malloc(buffer_size);
+        buffers[n_buffers].length = buf_size;
+        buffers[n_buffers].start = malloc(buf_size);
         if (!buffers[n_buffers].start)
             exception_exit("Failed to alloc space for buffers", "");
     }

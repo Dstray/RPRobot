@@ -75,7 +75,7 @@ List all supported image formats by the device.
 Set the image format exchanged between drivers and applications.  
 * parameters
   * fd: file descripter of the device.
-  * pfmt: pointer of an struct _v4l2_format_ type object.  
+  * pfmt: pointer of an struct [_v4l2_format_](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html#v4l2-format) type object.  
 * referenced functions
   * [ioctl VIDIOC_G_FMT, VIDIOC_S_FMT](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html)  
 
@@ -84,7 +84,9 @@ Set the image format exchanged between drivers and applications.
   * buf_size: size of each buffer in bytes.  
 
 **init_mmap_io**  
-Initiate Memory Mapping I/O.  
+Initiate Memory Mapping I/O:  
+Request several buffers (each for one image capture);  
+Map all the allocated buffers from device memory space to application memory space.
 * parameters
   * fd: file descripter of the device.
   * dev_name: name of the device.  
@@ -100,6 +102,35 @@ Initiate Memory Mapping I/O.
 * referenced functions
   * [ioctl VIDIOC_REQBUFS](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-reqbufs.html)  
 
+### Capturing
+**start_capturing**  
+Streaming I/O:  
+Enqueue previously requested buffers in the driver's incoming queue;  
+Start capture process during streaming I/O.  
+Read/Write I/O:  
+Nothing to do.
+* parameters
+  * fd: file descripter returned from _open_device_.
+  * io: specified I/O method.  
+* referenced functions
+  * [ioctl VIDIOC_QBUF](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-qbuf.html)
+  * [ioctl VIDIOC_STREAMON](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-streamon.html)
+
+**stop_capturing**  
+Streaming I/O:  
+Stop capture process during streaming I/O.  
+Read/Write I/O:  
+Nothing to do.
+* parameters
+  * fd: file descripter returned from _open_device_.
+  * io: specified I/O method.
+* referenced functions
+  * [ioctl VIDIOC_STREAMOFF](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-streamon.html)
+
+
+### Image Format
+
+<buffer status></buffer>
 
 ## Packages
 libv4l  

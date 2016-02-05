@@ -15,6 +15,44 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
+void stop_capturing(int fd, enum io_method io) {
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    switch (io) {
+    case IO_METHOD_READ:
+        break;
+    case IO_METHOD_MMAP:
+    case IO_METHOD_USERPTR:
+        if (xioctl(fd, VIDIOC_STREAMOFF, &type))
+            errno_exit("VIDIOC_STREAMOFF");
+        break;
+    }
+}
+
+void start_capturing(int fd, enum io_method io) {
+    int i;
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    switch (io) {
+    case IO_METHOD_READ: // Nothing to do
+        break;
+    case IO_METHOD_MMAP:
+        for (i = 0; i != n_buffers; i++) {
+            struct v4l2_buffer buf;
+            CLEAR(buf);
+            buf.type = type;
+            buf.memory = V4L2_MEMORY_MMAP;
+            buf.index = i;
+            if (xioctl(fd, VIDIOC_QBUF, &buf))
+                errno_exit("VIDIOC_QBUF");
+        }
+        if (xioctl(fd, VIDIOC_STREAMON, &type) == -1)
+            errno_exit("VIDIOC_STREAMON");
+        break;
+    case IO_METHOD_USERPTR:
+        //
+        break;
+    }
+}
+
 void init_read_io(int buf_size) {}
 
 void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
@@ -256,6 +294,7 @@ void close_device(int fd, enum io_method io) {
             free(buffers[i].start);
         break;
     }
+    free(buffers);
     // Close the device
     if (close(fd) == -1)
         errno_exit("Device Close");
@@ -336,6 +375,8 @@ int main(int argc, char** argv) {
 
     int fd = open_device(dev_name);
     init_device(fd, dev_name, io);
+    start_capturing(fd, io);
+    stop_capturing(fd, io);
     close_device(fd, io);
 
     return 0;

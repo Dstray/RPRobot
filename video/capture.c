@@ -29,31 +29,49 @@ void stop_capturing(int fd, enum io_method io) {
 }
 
 void start_capturing(int fd, enum io_method io) {
-    int i;
-    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    enum v4l2_memory mem_t;
     switch (io) {
-    case IO_METHOD_READ: // Nothing to do
-        break;
+    case IO_METHOD_READ:
+        return; // Nothing to do
     case IO_METHOD_MMAP:
-        for (i = 0; i != n_buffers; i++) {
-            struct v4l2_buffer buf;
-            CLEAR(buf);
-            buf.type = type;
-            buf.memory = V4L2_MEMORY_MMAP;
-            buf.index = i;
-            if (xioctl(fd, VIDIOC_QBUF, &buf))
-                errno_exit("VIDIOC_QBUF");
-        }
-        if (xioctl(fd, VIDIOC_STREAMON, &type) == -1)
-            errno_exit("VIDIOC_STREAMON");
+        mem_t = V4L2_MEMORY_MMAP;
         break;
     case IO_METHOD_USERPTR:
-        //
+        mem_t = V4L2_MEMORY_USERPTR;
         break;
     }
+    int i;
+    struct v4l2_buffer buf;
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    for (i = 0; i != n_buffers; i++) {
+        CLEAR(buf);
+        buf.type = type;
+        buf.memory = mem_t;
+        buf.index = i;
+        if (io == IO_METHOD_USERPTR) {
+            buf.m.userptr = (unsigned long)buffers[i].start;
+            buf.length = buffers[i].length;
+        }
+        if (xioctl(fd, VIDIOC_QBUF, &buf))
+            errno_exit("VIDIOC_QBUF");
+    }
+    if (xioctl(fd, VIDIOC_STREAMON, &type) == -1)
+        errno_exit("VIDIOC_STREAMON");
 }
 
-void init_read_io(int buf_size) {}
+void init_read_io(int buf_size) {
+    n_buffers = 1;
+    buffers = calloc(n_buffers, sizeof(*buffers));
+    if (!buffers)
+        exception_exit("Failed to alloc space for buffers", "");
+    int i;
+    for (i = 0; i != n_buffers; i++) {
+        buffers[i].length = buf_size;
+        buffers[i].start = malloc(buf_size);
+        if (!buffers[i].start)
+            exception_exit("Failed to alloc space for buffers", "");
+    }
+}
 
 void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
     fprintf(stream, "    type:       %d\n", ptcode->type);
@@ -77,25 +95,31 @@ void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
     fprintf(stream, "  length:       %d\n", pbuf->length);
 }
 
-void init_mmap_io(int fd, const char* dev_name) {
-    // Request buffers
-    struct v4l2_requestbuffers req;
-    CLEAR(req);
-    req.count = 4;
-    req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    req.memory = V4L2_MEMORY_MMAP;
-    if (xioctl(fd, VIDIOC_REQBUFS, &req) == -1) {
+void init_stream_io(int fd, const char* dev_name,
+    struct v4l2_requestbuffers* preq, enum v4l2_memory mem_t) {
+    CLEAR(*preq);
+    preq->count = 4;
+    preq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    preq->memory = mem_t;
+    if (xioctl(fd, VIDIOC_REQBUFS, preq) == -1) {
         if (EINVAL == errno)
-            exception_exit(dev_name, "does not support memory mapping");
+            exception_exit(dev_name, "does not support memory mappin i/o");
         else
             errno_exit("VIDIOC_REQBUFS");
     }
-    if (req.count < 2)
+    if (mem_t == V4L2_MEMORY_MMAP && preq->count < 2)
         exception_exit("Insufficient buffer memory on", dev_name);
-    // Map buffers
-    buffers = calloc(req.count, sizeof(*buffers));
+
+    buffers = calloc(preq->count, sizeof(*buffers));
     if (!buffers)
         exception_exit("Failed to alloc space for buffers", "");
+}
+
+void init_mmap_io(int fd, const char* dev_name) {
+    // Request buffers
+    struct v4l2_requestbuffers req;
+    init_stream_io(fd, dev_name, &req, V4L2_MEMORY_MMAP);
+    // Map buffers
     struct v4l2_buffer buf;
     for (n_buffers = 0; n_buffers != req.count; n_buffers++) {
         // Query buffer status
@@ -119,7 +143,18 @@ void init_mmap_io(int fd, const char* dev_name) {
     }
 }
 
-void init_userptr_io(int fd, const char* dev_name, int buf_size) {}
+void init_userptr_io(int fd, const char* dev_name, int buf_size) {
+    // Request buffers
+    struct v4l2_requestbuffers req;
+    init_stream_io(fd, dev_name, &req, V4L2_MEMORY_USERPTR)
+    // Allocate memory space for buffers
+    for (n_buffers = 0; n_buffers < 4; ++n_buffers) {
+        buffers[n_buffers].length = buffer_size;
+        buffers[n_buffers].start = malloc(buffer_size);
+        if (!buffers[n_buffers].start)
+            exception_exit("Failed to alloc space for buffers", "");
+    }
+}
 
 void check_dev_cap(int fd, const char* dev_name, enum io_method io) {
     struct v4l2_capability cap;

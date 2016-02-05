@@ -79,13 +79,14 @@ Set the image format exchanged between drivers and applications.
 * referenced functions
   * [ioctl VIDIOC_G_FMT, VIDIOC_S_FMT](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html)  
 
-**init_read_io**
+**init_read_io**  
+Allocate buffers using _malloc_.  
 * parameters
   * buf_size: size of each buffer in bytes.  
 
 **init_mmap_io**  
-Initiate Memory Mapping I/O:  
-Request several buffers (each for one image capture);  
+Initialize Memory Mapping I/O:  
+Requesting several buffers (each for one image capture);  
 Map all the allocated buffers from device memory space to application memory space.
 * parameters
   * fd: file descripter of the device.
@@ -94,7 +95,10 @@ Map all the allocated buffers from device memory space to application memory spa
   * [ioctl VIDIOC_REQBUFS](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-reqbufs.html)
   * [mmap](http://linuxtv.org/downloads/v4l-dvb-apis/func-mmap.html) @[sys/mman.h]
 
-**init_userptr_io**
+**init_userptr_io**  
+Initialize User Pointer I/O:  
+Inform the driver to switch itself into user pointer I/O mode;  
+Allocate buffers using _malloc_.  
 * parameters
   * fd: file descripter of the device.
   * dev_name: name of the device.

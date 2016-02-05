@@ -413,7 +413,7 @@ int main(int argc, char** argv) {
     }
 
     int fd = open_device(dev_name);
-    init_device(fd, dev_name, io);
+    init_device(fd, dev_name, io, 4);
     start_capturing(fd, io);
     stop_capturing(fd, io);
     close_device(fd, io);

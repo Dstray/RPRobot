@@ -15,6 +15,30 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
+void process_image(void* rdata, int size) {}
+
+void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
+    fprintf(stream, "    type:       %d\n", ptcode->type);
+    fprintf(stream, "    flags:      0x%08x\n", ptcode->flags);
+    fprintf(stream, "    frames:     %d\n", ptcode->frames);
+    fprintf(stream, "    seconds:    %d\n", ptcode->seconds);
+    fprintf(stream, "    minutes:    %d\n", ptcode->minutes);
+    fprintf(stream, "    hours:      %d\n", ptcode->hours);
+}
+
+void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
+    fprintf(stream, "Buffer %d:\n", pbuf->index);
+    fprintf(stream, "  bytesused:    %d\n", pbuf->bytesused);
+    fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
+    fprintf(stream, "  field:        %d\n", pbuf->field);
+    fprintf(stream, "  timestamp:    %dus\n", pbuf->timestamp.tv_usec);
+    fprintf(stream, "  timecode:\n");
+    fprint_timecode(stream, &(pbuf->timecode));
+    fprintf(stream, "  sequence:     %d\n", pbuf->sequence);
+    fprintf(stream, "  memory:       %d\n", pbuf->memory);
+    fprintf(stream, "  length:       %d\n", pbuf->length);
+}
+
 int read_frame(int fd, enum io_method io) {
     struct v4l2_buffer buf;
     int i = 0;
@@ -30,7 +54,7 @@ int read_frame(int fd, enum io_method io) {
                 errno_exit("read");
             }
         }
-        //(buffers[0].start, buffers[0].length)
+        process_image(buffers[0].start, buffers[0].length);
         break;
     case IO_METHOD_MMAP:
         CLEAR(buf);
@@ -47,7 +71,8 @@ int read_frame(int fd, enum io_method io) {
             }
         }
         assert(buf.index < n_buffers);
-        //(buffers[buf.index].start, buf.bytesused)
+        process_image(buffers[buf.index].start, buf.bytesused);
+        fprint_buffer_status(stdout, &buf);
         i = buf.index;
         if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
             errno_exit("VIDIOC_QBUF");
@@ -71,7 +96,8 @@ int read_frame(int fd, enum io_method io) {
                 && buf.length == buffers[i].length)
                 break;
         assert(i < n_buffers);
-        //((void *)buf.m.userptr, buf.bytesused)
+        process_image((void *)buf.m.userptr, buf.bytesused);
+        fprint_buffer_status(stdout, &buf);
         i = buf.index;
         if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
             errno_exit("VIDIOC_QBUF");
@@ -154,28 +180,6 @@ void init_read_io(int buf_size) {
     buffers[0].start = malloc(buf_size);
     if (!buffers[0].start)
         exception_exit("Failed to alloc space for buffers", "");
-}
-
-void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
-    fprintf(stream, "    type:       %d\n", ptcode->type);
-    fprintf(stream, "    flags:      0x%08x\n", ptcode->flags);
-    fprintf(stream, "    frames:     %d\n", ptcode->frames);
-    fprintf(stream, "    seconds:    %d\n", ptcode->seconds);
-    fprintf(stream, "    minutes:    %d\n", ptcode->minutes);
-    fprintf(stream, "    hours:      %d\n", ptcode->hours);
-}
-
-void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
-    fprintf(stream, "Buffer %d:\n", pbuf->index);
-    fprintf(stream, "  bytesused:    %d\n", pbuf->bytesused);
-    fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
-    fprintf(stream, "  field:        %d\n", pbuf->field);
-    fprintf(stream, "  timestamp:    %dus\n", pbuf->timestamp.tv_usec);
-    fprintf(stream, "  timecode:\n");
-    fprint_timecode(stream, &(pbuf->timecode));
-    fprintf(stream, "  sequence:     %d\n", pbuf->sequence);
-    fprintf(stream, "  memory:       %d\n", pbuf->memory);
-    fprintf(stream, "  length:       %d\n", pbuf->length);
 }
 
 void init_stream_io(int fd, const char* dev_name,

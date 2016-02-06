@@ -6,6 +6,7 @@ static enum io_method   io = IO_METHOD_MMAP;
 struct buffer*          buffers;
 static unsigned         n_buffers = 0;
 static int              frame_count = 10;
+struct v4lconvert_data* cvt_data;
 
 static int xioctl(int fd, int request, void* argp) {
     int r;
@@ -15,7 +16,7 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void process_image(unsigned char* rdata, int size) {
+void process_image(unsigned char* rdata, int size) {/*
     FILE* fp = fopen("frame.txt", "w");
     int i, j;
     for (i = 0; i != 614400;) {
@@ -23,7 +24,8 @@ void process_image(unsigned char* rdata, int size) {
             fprintf(fp, "%02x", rdata[i]);
         fprintf(fp, "\n");
     }
-    fclose(fp);
+    fclose(fp);*/
+    
 }
 
 void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
@@ -411,10 +413,34 @@ int open_device(const char* dev_name) {
             dev_name, errno, strerror(errno));
         exit(EXIT_FAILURE);
     }
+
+    cvt_data = v4lconvert_create(fd);
+    struct v4l2_fmtdesc fmtdesc;
+    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmtdesc.index = 0;
+    unsigned pf;
+    fprintf(stdout, "Enumerate dest image formats:\n");
+    fprintf(stdout, "  index   pixelformat flags   description\n");
+    while (1) {
+        if (v4lconvert_enum_fmt(cvt_data, &fmtdesc) == -1) {
+            if (errno == EINVAL)
+                break;
+            else
+                errno_exit("v4lconvert_enum_fmt");
+        }
+        pf = fmtdesc.pixelformat;
+        fprintf(stdout, "  %02d      ", fmtdesc.index ++);
+        fprintf(stdout, "%c%c%c%c        ",
+            pf >> 0, pf >> 8, pf >> 16, pf >> 24);
+        fprintf(stdout, "0x%04x  ", fmtdesc.flags);
+        fprintf(stdout, "%s\n", fmtdesc.description);
+    }
+
     return fd;
 }
 
 void close_device(int fd, enum io_method io) {
+    v4lconvert_destroy(cvt_data);
     // Clear buffers
     int i;
     switch (io) {

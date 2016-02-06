@@ -15,13 +15,12 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void process_image(char* rdata, int size) {
+void process_image(unsigned char* rdata, int size) {
     FILE* fp = fopen("frame.txt", "w");
     int i, j;
-    for (i = 0; i != 480; i++) {
-        for (j = 0; j != 1280; j++) {
-            fprintf(fp, "%02x", rdata[i * 1280 + j]);
-        }
+    for (i = 0; i != 614400;) {
+        for (j = 0; j != 1280; j++, i++)
+            fprintf(fp, "%02x", rdata[i]);
         fprintf(fp, "\n");
     }
     fclose(fp);

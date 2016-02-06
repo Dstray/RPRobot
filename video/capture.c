@@ -499,7 +499,7 @@ int main(int argc, char** argv) {
     init_device(fd, dev_name, io, 4);
     start_capturing(fd, io);
     while (frame_count--)
-        captrue(fd, io);
+        capture(fd, io);
     stop_capturing(fd, io);
     close_device(fd, io);
 

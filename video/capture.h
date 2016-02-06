@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <linux/videodev2.h>
+#include <libv4lconvert>
 
 enum io_method {
     IO_METHOD_READ,

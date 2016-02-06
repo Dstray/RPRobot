@@ -18,6 +18,7 @@ static int xioctl(int fd, int request, void* argp) {
 void process_image(void* rdata, int size) {}
 
 void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
+    fprintf(stream, "  timecode:\n");
     fprintf(stream, "    type:       %d\n", ptcode->type);
     fprintf(stream, "    flags:      0x%08x\n", ptcode->flags);
     fprintf(stream, "    frames:     %d\n", ptcode->frames);
@@ -32,8 +33,7 @@ void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
     fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
     fprintf(stream, "  field:        %d\n", pbuf->field);
     fprintf(stream, "  timestamp:    %dus\n", pbuf->timestamp.tv_usec);
-    fprintf(stream, "  timecode:\n");
-    fprint_timecode(stream, &(pbuf->timecode));
+    //fprint_timecode(stream, &(pbuf->timecode));
     fprintf(stream, "  sequence:     %d\n", pbuf->sequence);
     fprintf(stream, "  memory:       %d\n", pbuf->memory);
     fprintf(stream, "  length:       %d\n", pbuf->length);

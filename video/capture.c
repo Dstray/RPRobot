@@ -15,6 +15,38 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
+int read_frame(int fd, enum io_method io) {
+    struct v4l2_buffer buf;
+    int i;
+    switch (io) {
+    case IO_METHOD_READ:
+        
+    case IO_METHOD_MMAP:
+    case IO_METHOD_USERPTR:
+    }
+}
+
+struct buffer* capture(int fd, enum io_method io) {
+    fd_set fds;
+    struct timeval tv;
+    int retval;
+    do {
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+        tv.tv_sec = 2; // Timeout
+        tv.tv_usec = 0;
+        retval = select(fd + 1, &fds, NULL, NULL, &tv);
+        if (retval == -1) {
+            if (errno == EINTR)
+                continue;
+            errno_exit("select");
+        } else if (retval == 0) {
+            exception_exit("Waiting for capturing", "timeout");
+        }
+    } while ((retval = read_frame(fd, io)) == -1);
+    return buffers[retval];
+}
+
 void stop_capturing(int fd, enum io_method io) {
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     switch (io) {
@@ -59,18 +91,15 @@ void start_capturing(int fd, enum io_method io) {
         errno_exit("VIDIOC_STREAMON");
 }
 
-void init_read_io(int buf_size, int n_bufs) {
-    n_buffers = n_bufs;
+void init_read_io(int buf_size) {
+    n_buffers = 1;
     buffers = calloc(n_buffers, sizeof(*buffers));
     if (!buffers)
         exception_exit("Failed to alloc space for buffers", "");
-    int i;
-    for (i = 0; i != n_buffers; i++) {
-        buffers[i].length = buf_size;
-        buffers[i].start = malloc(buf_size);
-        if (!buffers[i].start)
-            exception_exit("Failed to alloc space for buffers", "");
-    }
+    buffers[0].length = buf_size;
+    buffers[0].start = malloc(buf_size);
+    if (!buffers[0].start)
+        exception_exit("Failed to alloc space for buffers", "");
 }
 
 void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
@@ -288,7 +317,7 @@ void init_device(int fd, const char* dev_name,
     // Allocate buffers
     switch (io) {
     case IO_METHOD_READ:
-        init_read_io(fmt.fmt.pix.sizeimage, n_bufs);
+        init_read_io(fmt.fmt.pix.sizeimage);
         break;
     case IO_METHOD_MMAP:
         init_mmap_io(fd, dev_name, n_bufs);
@@ -415,6 +444,8 @@ int main(int argc, char** argv) {
     int fd = open_device(dev_name);
     init_device(fd, dev_name, io, 4);
     start_capturing(fd, io);
+    while (frame_count--)
+        captrue(fd, io);
     stop_capturing(fd, io);
     close_device(fd, io);
 

@@ -135,6 +135,23 @@ Nothing to do.
 * referenced functions
   * [ioctl VIDIOC_STREAMOFF](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-streamon.html)
 
+**capture**  
+Capture a frame:  
+Waiting until device is capture-ready;  
+Get a frame from device.
+* parameters
+  * fd: file descripter returned from _open_device_.
+  * io: specified I/O method.
+* referenced functions
+  * [select](http://linux.die.net/man/2/select) @[sys/select.h]
+
+**read_frame**  
+* parameters
+  * fd: file descripter returned from _open_device_.
+  * io: specified I/O method.
+* referenced functions
+  * [ioctl VIDIOC_QBUF, VIDIOC_DQBUF](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-qbuf.html)
+
 
 ### Image Format
 

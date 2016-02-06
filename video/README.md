@@ -146,14 +146,17 @@ Get a frame from device.
   * [select](http://linux.die.net/man/2/select) @[sys/select.h]
 
 **read_frame**  
+Read raw data of a frame to a buffer and process the frame.
 * parameters
   * fd: file descripter returned from _open_device_.
   * io: specified I/O method.
 * referenced functions
+  * [read](http://linuxtv.org/downloads/v4l-dvb-apis/func-read.html) @[unistd.h]
   * [ioctl VIDIOC_QBUF, VIDIOC_DQBUF](http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-qbuf.html)
 
+### Image Processing
 
-### Image Format
+## Image Format
 
 <buffer status></buffer>
 

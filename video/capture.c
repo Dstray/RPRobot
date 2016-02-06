@@ -17,13 +17,67 @@ static int xioctl(int fd, int request, void* argp) {
 
 int read_frame(int fd, enum io_method io) {
     struct v4l2_buffer buf;
-    int i;
+    int i = 0;
     switch (io) {
     case IO_METHOD_READ:
-        
+        if (read(fd, buffers[0].start, buffers[0].length) == -1) {
+            switch (errno) {
+            case EAGAIN:
+            case EINTR:
+                return -1;
+            case EIO:
+            default:
+                errno_exit("read");
+            }
+        }
+        //(buffers[0].start, buffers[0].length)
+        break;
     case IO_METHOD_MMAP:
+        CLEAR(buf);
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        if (xioctl(fd, VIDIOC_DQBUF, &buf) == -1) {
+            switch (errno) {
+            case EAGAIN:
+            case EPIPE:
+                return -1;
+            case EIO:
+            default:
+                errno_exit("VIDIOC_DQBUF");
+            }
+        }
+        assert(buf.index < n_buffers);
+        //(buffers[buf.index].start, buf.bytesused)
+        i = buf.index;
+        if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
+            errno_exit("VIDIOC_QBUF");
+        break;
     case IO_METHOD_USERPTR:
+        CLEAR(buf);
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_USERPTR;
+        if (xioctl(fd, VIDIOC_DQBUF, &buf) == -1) {
+            switch (errno) {
+            case EAGAIN:
+            case EPIPE:
+                return -1;
+            case EIO:
+            default:
+                errno_exit("VIDIOC_DQBUF");
+            }
+        }
+        for (i = 0; i < n_buffers; ++i)
+            if (buf.m.userptr == (unsigned long)buffers[i].start
+                && buf.length == buffers[i].length)
+                break;
+        assert(i < n_buffers);
+        //((void *)buf.m.userptr, buf.bytesused)
+        i = buf.index;
+        if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
+            errno_exit("VIDIOC_QBUF");
+        break;
     }
+    return i;
 }
 
 struct buffer* capture(int fd, enum io_method io) {
@@ -44,7 +98,7 @@ struct buffer* capture(int fd, enum io_method io) {
             exception_exit("Waiting for capturing", "timeout");
         }
     } while ((retval = read_frame(fd, io)) == -1);
-    return buffers[retval];
+    return &(buffers[retval]);
 }
 
 void stop_capturing(int fd, enum io_method io) {
@@ -92,7 +146,7 @@ void start_capturing(int fd, enum io_method io) {
 }
 
 void init_read_io(int buf_size) {
-    n_buffers = 1;
+    n_buffers = 1; // multile buffers using VIDIOC_S_PARM
     buffers = calloc(n_buffers, sizeof(*buffers));
     if (!buffers)
         exception_exit("Failed to alloc space for buffers", "");

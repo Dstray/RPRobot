@@ -15,7 +15,17 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void process_image(void* rdata, int size) {}
+void process_image(void* rdata, int size) {
+    FILE* fp = fopen("frame.txt", "w");
+    int i, j;
+    for (i = 0; i != 480; i++) {
+        for (j = 0; j != 1280; j++) {
+            fprintf(fp, "%02x", rdata[i * 1280 + j]);
+        }
+        fprintf("\n");
+    }
+    fclose(fp);
+}
 
 void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
     fprintf(stream, "  timecode:\n");

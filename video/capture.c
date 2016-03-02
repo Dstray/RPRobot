@@ -1,6 +1,12 @@
 #include <getopt.h>
 #include "capture.h"
 
+//LIBV4L_PUBLIC
+extern struct v4lconvert_data *v4lconvert_create(int fd);        
+extern void v4lconvert_destroy(struct v4lconvert_data *data);
+extern int v4lconvert_enum_fmt(struct v4lconvert_data *data,            
+                struct v4l2_fmtdesc *fmt);
+
 static char*            dev_name = "/dev/video0";
 static enum io_method   io = IO_METHOD_MMAP;
 struct buffer*          buffers;

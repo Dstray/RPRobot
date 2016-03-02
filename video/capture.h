@@ -15,12 +15,6 @@
 #include <linux/videodev2.h>
 #include <libv4lconvert.h>
 
-//LIBV4L_PUBLIC
-extern struct v4lconvert_data *v4lconvert_create(int fd);        
-extern void v4lconvert_destroy(struct v4lconvert_data *data);
-extern int v4lconvert_enum_fmt(struct v4lconvert_data *data,            
-                struct v4l2_fmtdesc *fmt);
-
 enum io_method {
     IO_METHOD_READ,
     IO_METHOD_MMAP,

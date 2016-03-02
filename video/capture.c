@@ -1,18 +1,12 @@
 #include <getopt.h>
 #include "capture.h"
 
-//LIBV4L_PUBLIC
-extern struct v4lconvert_data *v4lconvert_create(int fd);        
-extern void v4lconvert_destroy(struct v4lconvert_data *data);
-extern int v4lconvert_enum_fmt(struct v4lconvert_data *data,            
-                struct v4l2_fmtdesc *fmt);
-
 static char*            dev_name = "/dev/video0";
 static enum io_method   io = IO_METHOD_MMAP;
 struct buffer*          buffers;
 static unsigned         n_buffers = 0;
 static int              frame_count = 10;
-struct v4lconvert_data* cvt_data;
+struct v4lconvert_data* cvt_data; //\\
 
 static int xioctl(int fd, int request, void* argp) {
     int r;
@@ -420,7 +414,7 @@ int open_device(const char* dev_name) {
         exit(EXIT_FAILURE);
     }
 
-    cvt_data = v4lconvert_create(fd);
+    /*cvt_data = v4lconvert_create(fd);
     struct v4l2_fmtdesc fmtdesc;
     fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     fmtdesc.index = 0;
@@ -440,13 +434,13 @@ int open_device(const char* dev_name) {
             pf >> 0, pf >> 8, pf >> 16, pf >> 24);
         fprintf(stdout, "0x%04x  ", fmtdesc.flags);
         fprintf(stdout, "%s\n", fmtdesc.description);
-    }
+    }*/
 
     return fd;
 }
 
 void close_device(int fd, enum io_method io) {
-    v4lconvert_destroy(cvt_data);
+    /*v4lconvert_destroy(cvt_data);*/
     // Clear buffers
     int i;
     switch (io) {

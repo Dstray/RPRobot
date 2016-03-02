@@ -16,7 +16,7 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void process_image(unsigned char* rdata, int size) {/*
+void process_image(unsigned char* rdata, int size) {
     FILE* fp = fopen("frame.txt", "w");
     int i, j;
     for (i = 0; i != 614400;) {
@@ -24,7 +24,7 @@ void process_image(unsigned char* rdata, int size) {/*
             fprintf(fp, "%02x", rdata[i]);
         fprintf(fp, "\n");
     }
-    fclose(fp);*/
+    fclose(fp);
     
 }
 

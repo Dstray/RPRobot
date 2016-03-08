@@ -330,8 +330,7 @@ void fprint_image_format(FILE* stream, struct v4l2_pix_format* pix) {
     fprintf(stream, "  field order: %d\n", pix->field);
     fprintf(stream, "  bytes per line: %u\n", pix->bytesperline);
     fprintf(stream, "  image size: %u bytes\n", pix->sizeimage);
-    fprintf(stream, "  color space: %u (%u, %u, %u, %u)\n", pix->colorspace,
-        V4L2_COLORSPACE_SRGB, V4L2_COLORSPACE_DEFAULT, V4L2_COLORSPACE_JPEG, V4L2_COLORSPACE_SMPTE240M);
+    fprintf(stream, "  color space: %u (%u)\n", pix->colorspace, V4L2_COLORSPACE_SRGB);
     fprintf(stream, "  extended fields: %u\n", pix->priv);
 }
 

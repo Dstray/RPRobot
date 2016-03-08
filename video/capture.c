@@ -17,13 +17,15 @@ static int xioctl(int fd, int request, void* argp) {
 }
 
 void process_image(unsigned char* rdata, int size) {
-    FILE* fp = fopen("frame.txt", "w");fprintf(stdout, "Debug %d", 0);//\\
+    FILE* fp = fopen("frame.txt", "w");
+    fprintf(stdout, "Debug %d\n", 0);//\\
     int i, j;
     for (i = 0; i != 614400;) {
         for (j = 0; j != 1280; j++, i++)
             fprintf(fp, "%02x", rdata[i]);
         fprintf(fp, "\n");
-    }fprintf(stdout, "Debug %d", 1);//\\
+    }
+    fprintf(stdout, "Debug %d\n", 1);//\\
     fclose(fp);
     
 }

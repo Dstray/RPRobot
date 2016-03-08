@@ -24,7 +24,7 @@ void process_image(unsigned char* rdata, int size) {
             fprintf(fp, "%02x", rdata[i]);
         fprintf(fp, "\n");
     }*/
-    fwrite(rdata, 8, size, fp);
+    fwrite(rdata, sizeof(unsigned char), size, fp);
     fclose(fp);
     
 }

@@ -376,6 +376,8 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
         pix->height      = 480;
         pix->pixelformat = V4L2_PIX_FMT_MJPEG;
         pix->field       = V4L2_FIELD_INTERLACED;
+        if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
+            errno_exit("VIDIOC_S_FMT");
     }
     fprint_image_format(stdout, pix);
 }

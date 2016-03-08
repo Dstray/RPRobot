@@ -331,7 +331,7 @@ void fprint_image_format(FILE* stream, struct v4l2_pix_format* pix) {
     fprintf(stream, "  bytes per line: %u\n", pix->bytesperline);
     fprintf(stream, "  image size: %u bytes\n", pix->sizeimage);
     fprintf(stream, "  color space: %u %u\n", pix->colorspace, V4L2_COLORSPACE_JPEG);
-    fprintf(stream, "  extended fields: %u\n", pix->priv == V4L2_PIX_FMT_PRIV_MAGIC ? 1 : 0);
+    fprintf(stream, "  extended fields: %u\n", pix->priv);
 }
 
 int list_supported_image_formats(int fd) {

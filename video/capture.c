@@ -44,7 +44,7 @@ void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
     fprintf(stream, "  bytesused:    %d\n", pbuf->bytesused);
     fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
     fprintf(stream, "  field:        %d\n", pbuf->field);
-    fprintf(stream, "  timestamp:    %dus\n", pbuf->timestamp.tv_usec);
+    fprintf(stream, "  timestamp:    %dus\n", (int)pbuf->timestamp.tv_usec);
     //fprint_timecode(stream, &(pbuf->timecode));
     fprintf(stream, "  sequence:     %d\n", pbuf->sequence);
     fprintf(stream, "  memory:       %d\n", pbuf->memory);
@@ -67,7 +67,6 @@ int read_frame(int fd, enum io_method io) {
                 errno_exit("read");
             }
         }
-        process_image(buffers[0].start, buffers[0].length);
         break;
     case IO_METHOD_MMAP:
         CLEAR(buf);
@@ -84,11 +83,11 @@ int read_frame(int fd, enum io_method io) {
             }
         }
         assert(buf.index < n_buffers);
-        process_image(buffers[buf.index].start, buf.length);
-        fprint_buffer_status(stdout, &buf);
         i = buf.index;
+        buffers[i].length = buf.bytesused;
         if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
             errno_exit("VIDIOC_QBUF");
+        fprint_buffer_status(stdout, &buf);
         break;
     case IO_METHOD_USERPTR:
         CLEAR(buf);
@@ -109,13 +108,13 @@ int read_frame(int fd, enum io_method io) {
                 && buf.length == buffers[i].length)
                 break;
         assert(i < n_buffers);
-        process_image((void *)buf.m.userptr, buf.bytesused);
-        fprint_buffer_status(stdout, &buf);
-        i = buf.index;
+        buffers[i].length = buf.bytesused;
         if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
             errno_exit("VIDIOC_QBUF");
+        fprint_buffer_status(stdout, &buf);
         break;
     }
+    process_image(buffers[i].start, buffers[i].length);
     return i;
 }
 
@@ -365,7 +364,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
     if (xioctl(fd, VIDIOC_G_FMT, pfmt) == -1)
         errno_exit("VIDIOC_G_FMT");
     struct v4l2_pix_format* pix = &(pfmt->fmt.pix);
-    if (0) {
+    if (1) {
         pix->width       = 640;
         pix->height      = 480;
         pix->pixelformat = V4L2_PIX_FMT_YUYV;
@@ -373,7 +372,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
         if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
             errno_exit("VIDIOC_S_FMT");
     }
-    if (1) {
+    if (0) {
         pix->width       = 640;
         pix->height      = 480;
         pix->pixelformat = V4L2_PIX_FMT_MJPEG;

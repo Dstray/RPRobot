@@ -384,6 +384,19 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
     fprint_image_format(stdout, pix);
 }
 
+void set_fps(int fd) {
+    struct v4l2_streamparm parm;
+    CLEAR(parm);
+    parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(fd, VIDIOC_G_PARM, &parm) == -1)
+        errno_exit("VIDIOC_G_PARM");
+    fprintf(stdout, "capability    : 0x%08x\n", parm.capture.capability);
+    fprintf(stdout, "capture mode  : 0x%08x\n", parm.capture.capturemode);
+    fprintf(stdout, "time per frame: %fs\n",
+        (float)parm.capture.timeperframe.numerator / parm.capture.timeperframe.denominator);
+    //
+}
+
 void init_device(int fd, const char* dev_name,
     enum io_method io, int n_bufs) {
     // Check device capabilities
@@ -394,6 +407,7 @@ void init_device(int fd, const char* dev_name,
     struct v4l2_format fmt;
     list_supported_image_formats(fd);
     set_image_format(fd, &fmt);
+    set_fps(fd);
     // Allocate buffers
     switch (io) {
     case IO_METHOD_READ:

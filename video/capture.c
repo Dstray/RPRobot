@@ -49,6 +49,7 @@ void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
     fprintf(stream, "  sequence:     %d\n", pbuf->sequence);
     fprintf(stream, "  memory:       %d\n", pbuf->memory);
     fprintf(stream, "  length:       %d\n", pbuf->length);
+    fprintf(stream, "  offset:       %d\n", pbuf->m.offset);
 }
 
 int read_frame(int fd, enum io_method io) {

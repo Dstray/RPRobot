@@ -390,10 +390,11 @@ void set_fps(int fd) {
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (xioctl(fd, VIDIOC_G_PARM, &parm) == -1)
         errno_exit("VIDIOC_G_PARM");
-    fprintf(stdout, "capability    : 0x%08x\n", parm.capture.capability);
-    fprintf(stdout, "capture mode  : 0x%08x\n", parm.capture.capturemode);
+    struct v4l2_captureparm* cparm = &(parm.parm.capture);
+    fprintf(stdout, "capability    : 0x%08x\n", cparm->capability);
+    fprintf(stdout, "capture mode  : 0x%08x\n", cparm->capturemode);
     fprintf(stdout, "time per frame: %fs\n",
-        (float)parm.capture.timeperframe.numerator / parm.capture.timeperframe.denominator);
+        (float)cparm->timeperframe.numerator / cparm->timeperframe.denominator);
     //
 }
 

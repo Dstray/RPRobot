@@ -83,7 +83,7 @@ int read_frame(int fd, enum io_method io) {
             }
         }
         assert(buf.index < n_buffers);
-        process_image(buffers[buf.index].start, buf.bytesused);
+        process_image(buffers[buf.index].start, buf.length);
         fprint_buffer_status(stdout, &buf);
         i = buf.index;
         if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)

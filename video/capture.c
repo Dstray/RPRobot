@@ -387,10 +387,13 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
 void set_fps(int fd) {
     struct v4l2_streamparm parm;
     CLEAR(parm);
+    struct v4l2_captureparm* cparm = &(parm.parm.capture);
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    cparm->capturemode = 0x0001;
+    cparm->timeperframe.numerator = 1;
+    cparm->timeperframe.denominator = 3;
     if (xioctl(fd, VIDIOC_G_PARM, &parm) == -1)
         errno_exit("VIDIOC_G_PARM");
-    struct v4l2_captureparm* cparm = &(parm.parm.capture);
     fprintf(stdout, "capability    : 0x%08x\n", cparm->capability);
     fprintf(stdout, "capture mode  : 0x%08x\n", cparm->capturemode);
     fprintf(stdout, "time per frame: %fs\n",

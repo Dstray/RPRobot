@@ -6,7 +6,7 @@ static enum io_method   io = IO_METHOD_MMAP;
 struct buffer*          buffers;
 static unsigned         n_buffers = 0;
 static int              frame_count = 10;
-struct v4lconvert_data* cvt_data; //\\
+static int              frames_per_sec = 30;
 
 static int xioctl(int fd, int request, void* argp) {
     int r;
@@ -17,7 +17,7 @@ static int xioctl(int fd, int request, void* argp) {
 }
 
 void process_image(unsigned char* rdata, int size) {
-    FILE* fp = fopen("frame.img", "wb");
+    FILE* fp = fopen("frame.im", "wb");
     /*int i, j;
     for (i = 0; i != 614400;) {
         for (j = 0; j != 1280; j++, i++)
@@ -322,6 +322,23 @@ void set_cropping_rect(int fd, const char* dev_name) {
     }
 }
 
+void query_control(int fd) {
+    struct v4l2_query_ext_ctrl exctrl;
+    CLEAR(exctrl);
+    exctrl.id = V4L2_CID_JPEG_CLASS;
+    if (xioctl(fd, VIDIOC_QUERY_EXT_CTRL, &exctrl)) {
+        if (errno == EINVAL)
+            exception_report("The driver does not support JPEG class control", "");
+        else
+            errno_report("VIDIOC_S_CROP");
+    }
+    fprintf(stdout, "Control attributes:\n");
+    fprintf(stdout, "  id   : %d\n", exctrl.id);
+    fprintf(stdout, "  type : %d\n", exctrl.type);
+    fprintf(stdout, "  name : %s\n", exctrl.name);
+    fprintf(stdout, "  flags: 0x%04x\n", exctrl.flags);
+}
+
 void fprint_image_format(FILE* stream, struct v4l2_pix_format* pix) {
     unsigned pf = pix->pixelformat;
     fprintf(stream, "Information of image format:\n");
@@ -364,7 +381,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
     if (xioctl(fd, VIDIOC_G_FMT, pfmt) == -1)
         errno_exit("VIDIOC_G_FMT");
     struct v4l2_pix_format* pix = &(pfmt->fmt.pix);
-    if (1) {
+    if (0) {
         pix->width       = 640;
         pix->height      = 480;
         pix->pixelformat = V4L2_PIX_FMT_YUYV;
@@ -372,7 +389,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
         if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
             errno_exit("VIDIOC_S_FMT");
     }
-    if (0) {
+    if (1) {
         pix->width       = 640;
         pix->height      = 480;
         pix->pixelformat = V4L2_PIX_FMT_MJPEG;
@@ -383,25 +400,25 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
     fprint_image_format(stdout, pix);
 }
 
-void set_fps(int fd) {
+void set_fps(int fd, int fps) {
     struct v4l2_streamparm parm;
     CLEAR(parm);
     struct v4l2_captureparm* cparm = &(parm.parm.capture);
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     cparm->capturemode = 0x0001;
     cparm->timeperframe.numerator = 1;
-    cparm->timeperframe.denominator = 3;
+    cparm->timeperframe.denominator = fps;
     if (xioctl(fd, VIDIOC_S_PARM, &parm) == -1)
         errno_exit("VIDIOC_S_PARM");
     CLEAR(parm);
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (xioctl(fd, VIDIOC_G_PARM, &parm) == -1)
         errno_exit("VIDIOC_G_PARM");
-    fprintf(stdout, "capability    : 0x%08x\n", cparm->capability);
-    fprintf(stdout, "capture mode  : 0x%08x\n", cparm->capturemode);
-    fprintf(stdout, "time per frame: %fs\n",
+    fprintf(stdout, "Capture capabilities:\n");
+    fprintf(stdout, "  capability    : 0x%08x\n", cparm->capability);
+    fprintf(stdout, "  capture mode  : 0x%08x\n", cparm->capturemode);
+    fprintf(stdout, "  time per frame: %fs\n",
         (float)cparm->timeperframe.numerator / cparm->timeperframe.denominator);
-    //
 }
 
 void init_device(int fd, const char* dev_name,
@@ -410,11 +427,13 @@ void init_device(int fd, const char* dev_name,
     check_dev_cap(fd, dev_name, io);
     // Set the cropping rectangle
     set_cropping_rect(fd, dev_name);
+    // Query Control
+    query_control(fd);
     // Set the image format
     struct v4l2_format fmt;
     list_supported_image_formats(fd);
     set_image_format(fd, &fmt);
-    //set_fps(fd);
+    set_fps(fd, frames_per_sec);
     // Allocate buffers
     switch (io) {
     case IO_METHOD_READ:
@@ -445,29 +464,6 @@ int open_device(const char* dev_name) {
             dev_name, errno, strerror(errno));
         exit(EXIT_FAILURE);
     }
-
-    /*cvt_data = v4lconvert_create(fd);
-    struct v4l2_fmtdesc fmtdesc;
-    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    fmtdesc.index = 0;
-    unsigned pf;
-    fprintf(stdout, "Enumerate dest image formats:\n");
-    fprintf(stdout, "  index   pixelformat flags   description\n");
-    while (1) {
-        if (v4lconvert_enum_fmt(cvt_data, &fmtdesc) == -1) {
-            if (errno == EINVAL)
-                break;
-            else
-                errno_exit("v4lconvert_enum_fmt");
-        }
-        pf = fmtdesc.pixelformat;
-        fprintf(stdout, "  %02d      ", fmtdesc.index ++);
-        fprintf(stdout, "%c%c%c%c        ",
-            pf >> 0, pf >> 8, pf >> 16, pf >> 24);
-        fprintf(stdout, "0x%04x  ", fmtdesc.flags);
-        fprintf(stdout, "%s\n", fmtdesc.description);
-    }*/
-
     return fd;
 }
 
@@ -504,7 +500,7 @@ static void print_usage(FILE* fp, int argc, char** argv) {
         "-r | --read          Use read() calls\n"
         "-u | --userp         Use application allocated buffers\n"
         //"-o | --output        Outputs stream to stdout\n"
-        //"-f | --format        Force format to 640x480 YUYV\n"
+        "-f | --fps num       Frames per second [30]\n"
         "-c | --count         Number of frames to grab [%i]\n"
         "",
         argv[0], dev_name, frame_count);
@@ -520,7 +516,7 @@ static const struct option long_options[] = {
     { "read",   no_argument,        NULL, 'r' },
     { "userp",  no_argument,        NULL, 'u' },
     //{ "output", no_argument,        NULL, 'o' },
-    //{ "format", no_argument,        NULL, 'f' },
+    { "fps", no_argument,        NULL, 'f' },
     { "count",  required_argument,  NULL, 'c' },
     { 0, 0, 0, 0 } // last element
 };
@@ -548,10 +544,15 @@ int main(int argc, char** argv) {
             break;/*
         case 'o':
             out_buf++;
-            break;
-        case 'f':
-            force_format++;
             break;*/
+        case 'f':
+            errno = 0;
+            frames_per_sec = strtol(optarg, NULL, 0);
+            if (errno)
+                errno_exit(optarg);
+            if (frame_count < 5)
+                exception_exit("Invalid fps", optarg);
+            break;
         case 'c':
             errno = 0;
             frame_count = strtol(optarg, NULL, 0);

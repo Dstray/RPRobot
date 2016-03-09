@@ -392,6 +392,10 @@ void set_fps(int fd) {
     cparm->capturemode = 0x0001;
     cparm->timeperframe.numerator = 1;
     cparm->timeperframe.denominator = 3;
+    if (xioctl(fd, VIDIOC_S_PARM, &parm) == -1)
+        errno_exit("VIDIOC_S_PARM");
+    CLEAR(parm);
+    parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (xioctl(fd, VIDIOC_G_PARM, &parm) == -1)
         errno_exit("VIDIOC_G_PARM");
     fprintf(stdout, "capability    : 0x%08x\n", cparm->capability);

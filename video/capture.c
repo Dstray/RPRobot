@@ -369,7 +369,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
         pix->width       = 640;
         pix->height      = 480;
         pix->pixelformat = V4L2_PIX_FMT_YUYV;
-        pix->field       = V4L2_FIELD_INTERLACED;
+        pix->field       = V4L2_FIELD_ANY;
         if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
             errno_exit("VIDIOC_S_FMT");
     }
@@ -377,7 +377,7 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
         pix->width       = 640;
         pix->height      = 480;
         pix->pixelformat = V4L2_PIX_FMT_MJPEG;
-        pix->field       = V4L2_FIELD_INTERLACED;
+        pix->field       = V4L2_FIELD_ANY;
         if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
             errno_exit("VIDIOC_S_FMT");
     }
@@ -415,7 +415,7 @@ void init_device(int fd, const char* dev_name,
     struct v4l2_format fmt;
     list_supported_image_formats(fd);
     set_image_format(fd, &fmt);
-    set_fps(fd);
+    //set_fps(fd);
     // Allocate buffers
     switch (io) {
     case IO_METHOD_READ:

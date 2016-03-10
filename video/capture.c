@@ -17,7 +17,7 @@ static int xioctl(int fd, int request, void* argp) {
 }
 
 void process_image(unsigned char* rdata, int size) {
-    check_dht(rdata, size);
+    check_dht(rdata, &size);
     FILE* fp = fopen("frame.im", "wb");
     /*int i, j;
     for (i = 0; i != 614400;) {

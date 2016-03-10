@@ -322,23 +322,6 @@ void set_cropping_rect(int fd, const char* dev_name) {
     }
 }
 
-void query_control(int fd) {
-    struct v4l2_query_ext_ctrl exctrl;
-    CLEAR(exctrl);
-    exctrl.id = V4L2_CID_JPEG_CLASS;
-    if (xioctl(fd, VIDIOC_QUERY_EXT_CTRL, &exctrl)) {
-        if (errno == EINVAL)
-            exception_report("The driver does not support JPEG class control", "");
-        else
-            errno_report("VIDIOC_S_CROP");
-    }
-    fprintf(stdout, "Control attributes:\n");
-    fprintf(stdout, "  id   : %d\n", exctrl.id);
-    fprintf(stdout, "  type : %d\n", exctrl.type);
-    fprintf(stdout, "  name : %s\n", exctrl.name);
-    fprintf(stdout, "  flags: 0x%04x\n", exctrl.flags);
-}
-
 void fprint_image_format(FILE* stream, struct v4l2_pix_format* pix) {
     unsigned pf = pix->pixelformat;
     fprintf(stream, "Information of image format:\n");
@@ -378,8 +361,6 @@ int list_supported_image_formats(int fd) {
 void set_image_format(int fd, struct v4l2_format* pfmt) {
     CLEAR(*pfmt);
     pfmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (xioctl(fd, VIDIOC_G_FMT, pfmt) == -1)
-        errno_exit("VIDIOC_G_FMT");
     struct v4l2_pix_format* pix = &(pfmt->fmt.pix);
     if (0) {
         pix->width       = 640;
@@ -396,11 +377,24 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
         pix->field       = V4L2_FIELD_ANY;
         if (xioctl(fd, VIDIOC_S_FMT, pfmt) == -1)
             errno_exit("VIDIOC_S_FMT");
+        struct v4l2_jpegcompression jcmpr;
+        CLEAR(jcmpr);
+        jcmpr.quality = 92;
+        jcmpr.COM_len = 7;
+        memcpy(jcmpr.COM_data, "@Dstray", jcmpr.COM_len);
+        jcmpr.jpeg_markers = 0xF8;
+        if (xioctl(fd, VIDIOC_S_JPEGCOMP, &jcmpr) == -1)
+            errno_report("VIDIOC_S_JPEGCOMP");
     }
+    CLEAR(*pfmt);
+    pfmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(fd, VIDIOC_G_FMT, pfmt) == -1)
+        errno_exit("VIDIOC_G_FMT");
     fprint_image_format(stdout, pix);
 }
 
 void set_fps(int fd, int fps) {
+    // Set fps
     struct v4l2_streamparm parm;
     CLEAR(parm);
     struct v4l2_captureparm* cparm = &(parm.parm.capture);
@@ -410,6 +404,7 @@ void set_fps(int fd, int fps) {
     cparm->timeperframe.denominator = fps;
     if (xioctl(fd, VIDIOC_S_PARM, &parm) == -1)
         errno_exit("VIDIOC_S_PARM");
+    // Get fps
     CLEAR(parm);
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (xioctl(fd, VIDIOC_G_PARM, &parm) == -1)
@@ -427,8 +422,6 @@ void init_device(int fd, const char* dev_name,
     check_dev_cap(fd, dev_name, io);
     // Set the cropping rectangle
     set_cropping_rect(fd, dev_name);
-    // Query Control
-    query_control(fd);
     // Set the image format
     struct v4l2_format fmt;
     list_supported_image_formats(fd);

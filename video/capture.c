@@ -385,7 +385,8 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
         jcmpr.jpeg_markers = 0xF8;*/
         if (xioctl(fd, VIDIOC_G_JPEGCOMP, &jcmpr) == -1)
             errno_report("VIDIOC_G_JPEGCOMP");
-        fprintf(stdout, "JPEG Markers: 0x%08x\n", jcmpr.jpeg_markers);
+        else
+            fprintf(stdout, "JPEG Markers: 0x%08x\n", jcmpr.jpeg_markers);
     }
     CLEAR(*pfmt);
     pfmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

@@ -1,7 +1,7 @@
 /*
  *  V4L2 video capture
  *  Author: Dstray
- *  Video capture part for the RPRobot
+ *  Video capture section for the RPRobot
  */
 
 #ifndef __CAPTURE_H__
@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <linux/videodev2.h>
-//#include <libv4lconvert.h>
+#include "imgproc.h"
 
 enum io_method {
     IO_METHOD_READ,

@@ -379,12 +379,13 @@ void set_image_format(int fd, struct v4l2_format* pfmt) {
             errno_exit("VIDIOC_S_FMT");
         struct v4l2_jpegcompression jcmpr;
         CLEAR(jcmpr);
-        jcmpr.quality = 92;
+        /*jcmpr.quality = 92;
         jcmpr.COM_len = 7;
         memcpy(jcmpr.COM_data, "@Dstray", jcmpr.COM_len);
-        jcmpr.jpeg_markers = 0xF8;
-        if (xioctl(fd, VIDIOC_S_JPEGCOMP, &jcmpr) == -1)
-            errno_report("VIDIOC_S_JPEGCOMP");
+        jcmpr.jpeg_markers = 0xF8;*/
+        if (xioctl(fd, VIDIOC_G_JPEGCOMP, &jcmpr) == -1)
+            errno_report("VIDIOC_G_JPEGCOMP");
+        fprintf(stdout, "JPEG Markers: 0x%08x\n", jcmpr.jpeg_markers);
     }
     CLEAR(*pfmt);
     pfmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

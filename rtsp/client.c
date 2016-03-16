@@ -1,8 +1,4 @@
-#include "../common/exception.h"
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include "rtsp.h"
 #include <netdb.h>
 
 #define BUFFER_SIZE 256
@@ -38,16 +34,16 @@ int main(int argc, char *argv[])
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
 
-    printf("Please enter the message: ");
-    fgets(buffer, BUFFER_SIZE - 1, stdin);
     int n;
-    if ((n = send(sockfd, buffer, strlen(buffer), 0)) == -1) 
+    n = sprintf(buffer, "OPTIONS rtsp://c.itvitv.com/mega RTSP/1.0\r\n%s\r\n%s\r\n",
+        "CSeq: 2", "User-Agent: LibVLC/2.1.6 (LIVE555 Streaming Media v2014.01.13)");
+    if ((n = send(sockfd, buffer, n, 0)) == -1)
         errno_exit("writing to socket failed");
 
     memset(buffer, 0, BUFFER_SIZE);
     if ((n = recv(sockfd, buffer, BUFFER_SIZE - 1, 0)) == -1) 
          errno_exit("reading from socket failed");
-    printf("%s\n",buffer);
+    printf("====== message ======\n%s\n", buffer);
 
     close(sockfd);
     return 0;

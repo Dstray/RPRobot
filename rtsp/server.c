@@ -1,12 +1,6 @@
-/* A simple server in the internet domain using TCP
-   The port number is passed as an argument */
-#include "../common/exception.h"
-#include <unistd.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include "rtsp.h"
 
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 0x1000
 
 int main(int argc, char *argv[])
 {
@@ -38,15 +32,18 @@ int main(int argc, char *argv[])
         errno_exit("accepting failed.");
 
     char buffer[BUFFER_SIZE];
-    memset(buffer, 0, BUFFER_SIZE);
-    
-    int n;
-    if ((n = recv(newsockfd, buffer, BUFFER_SIZE - 1, 0)) < 0)
-        errno_exit("reading from socket failed");
-    printf("Here is the message: %s\n",buffer);
-
-    if ((n = send(newsockfd,"I got your message",18, 0)) < 0)
-        errno_exit("writing to socket failed");
+    int n, cnt = 3;
+    while (cnt --) {
+        memset(buffer, 0, BUFFER_SIZE);
+        if ((n = recv(newsockfd, buffer, BUFFER_SIZE - 1, 0)) == -1)
+            errno_exit("reading from socket failed");
+        printf("====== request ======\n%s\n", buffer);
+        n = sprintf(buffer, "RTSP/1.0 %d %s\r\n%s%s\r\n", 200, "OK",
+            "CSeq: 1\r\n", "Sever: RPRobot/1.0\r\n");
+        if ((n = send(newsockfd, buffer, n, 0)) == -1)
+            errno_exit("writing to socket failed");
+        printf("====== response ======\n%s\n", buffer);
+    }
 
     close(newsockfd);
     close(sockfd);

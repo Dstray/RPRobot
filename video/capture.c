@@ -323,6 +323,27 @@ void set_cropping_rect(int fd, const char* dev_name) {
     }
 }
 
+void query_control(int fd, const char* dev_name) {
+    struct v4l2_queryctrl qctrl;
+    qctrl.id = V4L2_CTRL_CLASS_MPEG | V4L2_CTRL_FLAG_NEXT_CTRL;
+    fprintf(stdout, "Query controls:\n");
+    while (1) {
+        if (ioctl(fd, VIDIOC_QUERYCTRL, &qctrl) == -1) {
+            if (errno == EINVAL)
+                exception_report(dev_name, "does not support this control");
+            else
+                errno_report("VIDIOC_QUERYCTRL");
+            fprintf(stdout, "Debug %d\n", 0);
+            continue;
+        }
+        fprintf(stdout, "  name: %s\n", qctrl.name);
+        fprintf(stdout, "  type: %u\n", qctrl.type);
+        if (V4L2_CTRL_ID2CLASS(qctrl.id) != V4L2_CTRL_CLASS_MPEG)
+            break;
+        qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+    }
+}
+
 void fprint_image_format(FILE* stream, struct v4l2_pix_format* pix) {
     unsigned pf = pix->pixelformat;
     fprintf(stream, "Information of image format:\n");
@@ -425,6 +446,8 @@ void init_device(int fd, const char* dev_name,
     check_dev_cap(fd, dev_name, io);
     // Set the cropping rectangle
     set_cropping_rect(fd, dev_name);
+    // Query control
+    query_control(fd, dev_name);
     // Set the image format
     struct v4l2_format fmt;
     list_supported_image_formats(fd);

@@ -51,5 +51,6 @@
 	0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa
 };
 
+/* The MJPEG from the webcam device may lack a huffman table. */
 extern int check_dht(unsigned char* imgbuf, int* imgsz);
 /* Return 0 for success. */

@@ -83,7 +83,7 @@ struct status_line {
 
 struct header_buffers { //TODO
     int num;
-    char* fields[10];
+    struct header* fields[10];
     char* values[10];
 };
 
@@ -110,11 +110,20 @@ static struct method methods[] = {
 	{ "TEARDOWN", process_method_teardown }
 };
 
+#define HEADER_TYPE_GENERAL     0x01
+#define HEADER_TYPE_REQUEST     0x02
+#define HEADER_TYPE_RESPONSE    0x04
+#define HEADER_TYPE_ENTITY      0x08
+#define HEADER_TYPE_EXTENSION   0x10
+#define HEADER_TYPE_REQ         0x1B
+#define HEADER_TYPE_RES         0x1D
+
 struct header {
-    const char* field;
+    const char* name;
     void (*func)(void*, void*); // (void*, struct response* | struct request*)
 };
 
+// IN DICTIONARY ORDER
 static struct header general_headers[] = {
     { "Cache-Control", process_header_default },            //SETUP
     { "Connection", process_header_default },               //SETUP
@@ -173,5 +182,8 @@ static struct header extension_headers[] = {
     { "Transport", process_header_default },                //SETUP
     { "Unsupported", process_header_default },
 };
+
+// type: HEADER_TYPE_
+extern struct header* get_header(const char* name, unsigned type);
 
 #endif /* rtsp.h */

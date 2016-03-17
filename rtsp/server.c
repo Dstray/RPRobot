@@ -32,11 +32,11 @@ int parse_headers(char* buf, int len,
             break;
 
         i_colon = find_char(':', rem, l_end);
-        p_hbufs->fields[p_hbufs->num] = rem;
         rem[i_colon] = '\0';
+        p_hbufs->fields[p_hbufs->num] = get_header(rem, HEADER_TYPE_REQ);
         assert(rem[i_colon + 1] == ' ');
-        p_hbufs->values[p_hbufs->num] = rem + i_colon + 2;
         rem[l_end - 1] = '\0';
+        p_hbufs->values[p_hbufs->num] = rem + i_colon + 2;
 
         rem += l_end + 1;
         p_hbufs->num++;
@@ -65,10 +65,11 @@ void fprint_request(FILE* stream, struct request* p_req) {
     int i;
     for (i = 0; i != p_req->h_bufs.num; i++)
         fprintf(stream, "%s: %s\n",
-            p_req->h_bufs.fields[i], p_req->h_bufs.values[i]);
+            p_req->h_bufs.fields[i]->name, p_req->h_bufs.values[i]);
 }
 
 void process_request(struct request* p_req, struct response* p_res) {
+    p_res->sta_line.version = RTSP_VERSION;
     int n_methods = SIZEOF(methods), i;
     for (i = 0; i != n_methods; i++)
         if (!strcmp(methods[i].name, p_req->req_line.method))
@@ -89,7 +90,7 @@ int create_response_message(char* resbuf,
         p_res->sta_line.p_status->reason_phrase);
     for (i = 0; i != p_res->h_bufs.num; i++)
         n += sprintf(resbuf + n, "%s: %s\r\n",
-            p_res->h_bufs.fields[i], p_res->h_bufs.values[i]);
+            p_res->h_bufs.fields[i]->name, p_res->h_bufs.values[i]);
     n += sprintf(resbuf + n, "\r\n");
     //TODO
     return n;
@@ -97,6 +98,7 @@ int create_response_message(char* resbuf,
 
 int main(int argc, char *argv[])
 {
+    printf("%d\n", SIZEOF(general_headers));
     if (argc < 2)
         exception_exit("No port", "provided");
     int sockfd;

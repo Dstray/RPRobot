@@ -22,7 +22,7 @@ int parse_request_line(char* buf, int len,
 }
 
 int parse_headers(char* buf, int len,
-    struct message_headers* p_mheaders) {
+    struct header_buffers* p_hbufs) {
     char* rem = buf;
     int l_end, i_colon;
     while (1) {
@@ -32,27 +32,27 @@ int parse_headers(char* buf, int len,
             break;
 
         i_colon = find_char(':', rem, l_end);
-        p_mheaders->fields[p_mheaders->num] = rem;
+        p_hbufs->fields[p_hbufs->num] = rem;
         rem[i_colon] = '\0';
         assert(rem[i_colon + 1] == ' ');
-        p_mheaders->values[p_mheaders->num] = rem + i_colon + 2;
+        p_hbufs->values[p_hbufs->num] = rem + i_colon + 2;
         rem[l_end - 1] = '\0';
 
         rem += l_end + 1;
-        p_mheaders->num++;
+        p_hbufs->num++;
     }
     return rem - buf + 2;
 }
 
 int parse_request(char* buf, int len, struct request* p_req) {
     CLEAR(p_req->req_line);
-    p_req->m_headers.num = 0;
+    p_req->h_bufs.num = 0;
 
     int idx = 0;
     idx += parse_request_line(buf, len, &(p_req->req_line));
     if (idx == -1)
         return -1;
-    idx += parse_headers(buf + idx, len - idx, &(p_req->m_headers));
+    idx += parse_headers(buf + idx, len - idx, &(p_req->h_bufs));
     //idx = parse_message_body(buf[idx], len - idx);
     //TODO
     return idx;
@@ -63,9 +63,9 @@ void fprint_request(FILE* stream, struct request* p_req) {
     fprintf(stream, "%s %s %s\n", p_req->req_line.method,
         p_req->req_line.req_uri, p_req->req_line.version);
     int i;
-    for (i = 0; i != p_req->m_headers.num; i++)
+    for (i = 0; i != p_req->h_bufs.num; i++)
         fprintf(stream, "%s: %s\n",
-            p_req->m_headers.fields[i], p_req->m_headers.values[i]);
+            p_req->h_bufs.fields[i], p_req->h_bufs.values[i]);
 }
 
 void process_request(struct request* p_req, struct response* p_res) {
@@ -87,9 +87,9 @@ int create_response_message(char* resbuf,
         p_res->sta_line.version,
         p_res->sta_line.p_status->code,
         p_res->sta_line.p_status->reason_phrase);
-    for (i = 0; i != p_res->m_headers.num; i++)
+    for (i = 0; i != p_res->h_bufs.num; i++)
         n += sprintf(resbuf + n, "%s: %s\r\n",
-            p_res->m_headers.fields[i], p_res->m_headers.values[i]);
+            p_res->h_bufs.fields[i], p_res->h_bufs.values[i]);
     n += sprintf(resbuf + n, "\r\n");
     //TODO
     return n;

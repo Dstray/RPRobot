@@ -5,15 +5,12 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "header.h"
 #include "method.h"
 
 #define RTSP_VERSION "RTSP/1.0"
 
 #define SIZEOF(o) (sizeof (o)) / (sizeof *(o))
-
-//^header.h
-
-//header.h$
 
 enum state {
 	INIT,
@@ -84,7 +81,7 @@ struct status_line {
     struct status* p_status;
 };
 
-struct message_headers { //TODO
+struct header_buffers { //TODO
     int num;
     char* fields[10];
     char* values[10];
@@ -92,12 +89,12 @@ struct message_headers { //TODO
 
 struct request {
 	struct request_line req_line;
-	struct message_headers m_headers;
+	struct header_buffers h_bufs;
 };
 
 struct response {
 	struct status_line sta_line;
-	struct message_headers m_headers;
+	struct header_buffers h_bufs;
 };
 
 struct method {
@@ -111,6 +108,70 @@ static struct method methods[] = {
 	{ "PLAY", process_method_play },
 	{ "SETUP", process_method_setup },
 	{ "TEARDOWN", process_method_teardown }
+};
+
+struct header {
+    const char* field;
+    void (*func)(void*, void*); // (void*, struct response* | struct request*)
+};
+
+static struct header general_headers[] = {
+    { "Cache-Control", process_header_default },            //SETUP
+    { "Connection", process_header_default },               //SETUP
+    { "Date", process_header_default },
+    { "Via", process_header_default }
+};
+
+static struct header request_headers[] = {
+    { "Accept", process_header_default },                   //entity
+    { "Accept-Encoding", process_header_default },          //entity
+    { "Accept-Language", process_header_default },
+    { "Authorization", process_header_default },
+    { "From", process_header_default },
+    { "If-Modified-Since", process_header_default },        //DESCRIBE, SETUP
+    { "Range", process_header_default },                    //PLAY, PAUSE, RECORD
+    { "Referer", process_header_default },
+    { "User-Agent", process_header_default }
+};
+
+static struct header response_headers[] = {
+    { "Location", process_header_default },///
+    { "Proxy-Authenticate", process_header_default },
+    { "Public", process_header_default },///
+    { "Retry-After", process_header_default },
+    { "Server", process_header_default },
+    { "Vary", process_header_default },///
+    { "WWW-Authenticate", process_header_default }
+};
+
+static struct header entity_headers[] = {
+    { "Allow", process_header_default },
+    { "Content-Base", process_header_default },             //entity
+    { "Content-Encoding", process_header_default },         //SET_PARAMETER | (DESCRIBE, ANNOUNCE)
+    { "Content-Language", process_header_default },         //DESCRIBE, ANNOUNCE
+    { "Content-Length", process_header_default },           //(SET_PARAMETER, ANNOUNCE) | entity
+    { "Content-Location", process_header_default },         //entity
+    { "Content-Type", process_header_default },             //(SET_PARAMETER, ANNOUNCE) | entity
+    { "Expires", process_header_default },                  //DESCRIBE, ANNOUNCE
+    { "Last-Modified", process_header_default }             //entity
+};
+
+static struct header extension_headers[] = {
+    { "Bandwidth", process_header_default },
+    { "Blocksize", process_header_default },                //all but OPTIONS, TEARDOWN
+    { "Conference", process_header_default },               //SETUP
+    { "CSeq", process_header_cseq },
+    { "Host", process_header_default },///
+    { "If-Match", process_header_default },///
+    { "Proxy-Require", process_header_default },
+    { "Require", process_header_default },
+    { "RTP-Info", process_header_default },                 //PLAY
+    { "Scale", process_header_default },                    //PLAY, RECORD
+    { "Session", process_header_default },                  //all but SETUP, OPTIONS
+    { "Speed", process_header_default },                    //PLAY
+    { "Timestamp", process_header_default },///
+    { "Transport", process_header_default },                //SETUP
+    { "Unsupported", process_header_default },
 };
 
 #endif /* rtsp.h */

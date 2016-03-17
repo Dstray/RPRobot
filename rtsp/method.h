@@ -2,6 +2,7 @@
 #define __METHOD_H__ 1
 
 #include "../common/exception.h"
+#include "header.h"
 
 extern void process_method_unsupported(void*, void*);
 extern void process_method_describe(void*, void*);

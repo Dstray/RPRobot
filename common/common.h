@@ -13,6 +13,7 @@
 #include <assert.h>
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
+#define CLEAR_BUF(b) memset(b, 0, sizeof b)
 
 struct buffer {
     void   *start;

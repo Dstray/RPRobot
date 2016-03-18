@@ -69,7 +69,7 @@ void fprint_request(FILE* stream, struct request* p_req) {
 }
 
 void process_request(struct request* p_req, struct response* p_res) {
-    p_res->sta_line.version = RTSP_VERSION;
+    CLEAR_BUF(p_res->sta_line.version);
     int n_methods = SIZEOF(methods), i;
     for (i = 0; i != n_methods; i++)
         if (!strcmp(methods[i].name, p_req->req_line.method))
@@ -78,6 +78,7 @@ void process_request(struct request* p_req, struct response* p_res) {
         methods[i].func(p_req, p_res);
     else
         process_method_unsupported(p_req, p_res);
+    strcpy(p_res->sta_line.version, RTSP_VERSION);
 }
 
 int create_response_message(char* resbuf,
@@ -98,7 +99,6 @@ int create_response_message(char* resbuf,
 
 int main(int argc, char *argv[])
 {
-    printf("%d\n", SIZEOF(general_headers));
     if (argc < 2)
         exception_exit("No port", "provided");
     int sockfd;

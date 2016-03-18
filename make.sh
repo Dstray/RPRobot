@@ -1,3 +1,3 @@
-gcc -o capture common/exception.c video/imgproc.c video/capture.c
-gcc -o rtspserver common/exception.c rtsp/header.c rtsp/method.c rtsp/rtsp.c rtsp/server.c
-gcc -o rtspclient common/exception.c rtsp/header.c rtsp/method.c rtsp/rtsp.c rtsp/client.c
+gcc -o capture common/common.c video/imgproc.c video/capture.c
+gcc -o rtspserver common/common.c rtsp/rtsp.c rtsp/header.c rtsp/method.c rtsp/server.c
+#gcc -o rtspclient common/common.c rtsp/rtsp.c rtsp/header.c rtsp/method.c rtsp/client.c

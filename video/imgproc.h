@@ -4,6 +4,9 @@
  *  Image processing section for the RPRobot
  */
 
+#ifndef __IMGPROC_H__
+#define __IMGPROC_H__ 1
+
  #include <string.h>
 
  static unsigned char huffman_table[] = {
@@ -54,3 +57,5 @@
 /* The MJPEG from the webcam device may lack a huffman table. */
 extern int check_dht(unsigned char* imgbuf, int* imgsz);
 /* Return 0 for success. */
+
+#endif /* imgproc.h */

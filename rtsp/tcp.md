@@ -18,7 +18,7 @@
 Assigns the specified address to the socket.  
 **sockfd**(int): fd given by socket().  
 **addr**(struct sockaddr*): casted from relative _Address_.  
-**addrlen**(socklen_t): sizeof addr struct  
+**addrlen**(socklen_t): sizeof addr struct.  
 **RETURN VALUE**: 0 on success; -1 on error.
 
 ### [Listen](http://man7.org/linux/man-pages/man2/listen.2.html)
@@ -28,16 +28,16 @@ Marks the socket as a passive socket.
 **RETURN VALUE**: 0 on success; -1 on error.
 
 ### [Accept](http://man7.org/linux/man-pages/man2/accept.2.html)
-Extracts the first connection request on the queue of pending connections for the listening socket, and creates a new connected socket.
+Extracts the first connection request on the queue of pending connections for the listening socket, and creates a new connected socket.  
 **sockfd**(int)  
-**addr**(struct sockaddr*)  
-**addrlen**(socklen_t*)  
+**addr**(struct sockaddr\*)  
+**addrlen**(socklen_t\*)  
 **RETURN VALUE**: a file descriptor for the new connected socket on success; -1 on error.
 
 ### [Recv](http://man7.org/linux/man-pages/man2/recvmsg.2.html)
 Receive messages from a socket.  
 **sockfd**(int)  
-**buf**(void*)  
+**buf**(void\*)  
 **len**(size_t)  
 **flags**(int)  
 **RETURN VALUE**: the number of bytes received; -1 on error.
@@ -45,7 +45,7 @@ Receive messages from a socket.
 ### [Send](http://man7.org/linux/man-pages/man2/sendmsg.2.html)
 Transmit a message to another socket.  
 **sockfd**(int)  
-**buf**(void*)  
+**buf**(void\*)  
 **len**(size_t)  
 **flags**(int)  
 **RETURN VALUE**: the number of bytes sent; -1 on error.
@@ -56,21 +56,21 @@ Transmit a message to another socket.
 ### Socket
 
 ### Address
->C 
-struct hostent *gethostbyname(const char *name);
-struct hostent {
-   char  *h_name;            /* official name of host */
-   char **h_aliases;         /* alias list */
-   int    h_addrtype;        /* host address type */
-   int    h_length;          /* length of address */
-   char **h_addr_list;       /* list of addresses */
-   char  *h_addr;            /* first address in h_addr_list */
+>C  
+struct hostent *gethostbyname(const char *name);  
+struct hostent {  
+   char  *h_name;            /* official name of host */  
+   char **h_aliases;         /* alias list */  
+   int    h_addrtype;        /* host address type */  
+   int    h_length;          /* length of address */  
+   char **h_addr_list;       /* list of addresses */  
+   char  *h_addr;            /* first address in h_addr_list */  
 }
 
 ### [Connect](http://man7.org/linux/man-pages/man2/connect.2.html)
 Connects the server socket.  
 **sockfd**(int): fd given by socket().  
-**addr**(struct sockaddr*): casted from relative _Address_.  
+**addr**(struct sockaddr\*): casted from relative _Address_.  
 **addrlen**(socklen_t): sizeof addr struct  
 **RETURN VALUE**: 0 on success; -1 on error.
 

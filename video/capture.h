@@ -7,7 +7,7 @@
 #ifndef __CAPTURE_H__
 #define __CAPTURE_H__ 1
 
-#include "../common/exception.h"
+#include "../common/common.h"
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>

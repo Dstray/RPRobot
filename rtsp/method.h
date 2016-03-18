@@ -1,7 +1,7 @@
 #ifndef __METHOD_H__
 #define __METHOD_H__ 1
 
-#include "../common/exception.h"
+#include "../common/common.h"
 #include "header.h"
 
 extern void process_method_unsupported(void*, void*);

@@ -41,3 +41,18 @@ struct header* get_header(const char* name, unsigned type) {
 	}
 	return h;
 }
+
+struct status* get_status(int code) {
+	int s = 0, g = SIZEOF(response_status), m, c;
+	while (s < g) {
+		m = (s + g) / 2;
+		c = response_status[m].code;
+		if (code < c)
+			g = m;
+		else if (code > c)
+			s = m + 1;
+		else
+			return &response_status[m];
+	}
+	return NULL;
+}

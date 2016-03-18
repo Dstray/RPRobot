@@ -10,8 +10,6 @@
 
 #define RTSP_VERSION "RTSP/1.0"
 
-#define SIZEOF(o) (sizeof (o)) / (sizeof *(o))
-
 enum state {
     INIT,
     READY,

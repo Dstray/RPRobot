@@ -50,8 +50,10 @@ void process_header_public(void* vp_hdr, void* vp_val, void* vp_msg) {
     int n_methods = SIZEOF(supported_methods), i;
     for (i = 0; i != n_methods; i++) {
         if (i != 0)
-            ;
+            b_idx += sprintf(tmpbuf + b_idx, ", ");
+        b_idx += sprintf(tmpbuf + b_idx, "%s", supported_methods[i]);
     }
+    tmpbuf[b_idx++] = '\0';
 }
 
 // entity header

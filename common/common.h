@@ -16,6 +16,8 @@
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 #define CLEAR_BUF(b) memset(b, 0, sizeof b)
 
+#define SIZEOF(o) (sizeof (o)) / (sizeof *(o))
+
 struct buffer {
     void   *start;
     size_t  length;

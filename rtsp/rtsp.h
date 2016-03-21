@@ -80,7 +80,7 @@ static struct header general_headers[] = {
 };
 
 static struct header request_headers[] = {
-    { "Accept", process_header_default },                   //entity
+    { "Accept", process_header_accept },                   //entity
     { "Accept-Encoding", process_header_default },          //entity
     { "Accept-Language", process_header_default },
     { "Authorization", process_header_default },

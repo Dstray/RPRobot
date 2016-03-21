@@ -33,6 +33,7 @@ struct request {
 struct response {
     struct status_line sta_line;
     struct header_buffers h_bufs;
+    char* entity;
 };
 
 struct method {
@@ -58,6 +59,7 @@ extern void process_header_default(void*, void*, void*);
 // general header
 
 // request header
+extern void process_header_accept(void*, void*, void*);
 
 // response header
 extern void process_header_public(void*, void*, void*);

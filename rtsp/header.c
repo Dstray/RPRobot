@@ -20,6 +20,7 @@ void process_header(void* vp_req, void* vp_res) {
     if (proc_req) {
         p_res->sta_line.p_status = get_status(200);
         p_res->h_bufs.num = 0;
+        p_res->entity = NULL;
         p_hbufs = &(p_req->h_bufs);
         vp_msg = vp_res;
     } else {
@@ -38,10 +39,32 @@ void process_header_default(void* vp_hdr, void* vp_val, void* vp_msg) {}
 // general header
 
 // request header
+void process_header_accept(void* vp_hdr, void* vp_val, void* vp_msg) {
+    assert(proc_req);
+    char* val = (char*) vp_val, type = val;
+    int i = 0;
+    while (val[i] != '\0') {
+        if (val[i] == ',') {
+            val[i] = '\0';
+            if (!strcmp(type, "application/sdp")) {
+                ((struct response*)vp_msg)->entity = "application/sdp";
+                return;
+            }
+            while (val[++i] == ' ') ;
+            type = &val[i--];
+        }
+        i++;
+    }
+    if (!strcmp(type, "application/sdp"))
+        ((struct response*)vp_msg)->entity = "application/sdp";
+    else {
+        ;
+    }
+}
 
 // response header
 void process_header_public(void* vp_hdr, void* vp_val, void* vp_msg) {
-    assert(proc_req);
+    assert(proc_req); //TODO
     struct header_buffers* p_hbufs = &((struct response*)vp_msg)->h_bufs;
     p_hbufs->fields[p_hbufs->num] = (struct header*)vp_hdr;
     p_hbufs->values[p_hbufs->num] = tmpbuf + b_idx;

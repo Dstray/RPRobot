@@ -65,6 +65,8 @@ extern void process_header_accept(void*, void*, void*);
 extern void process_header_public(void*, void*, void*);
 
 // entity header
+extern void process_header_content_length(void*, void*, void*);
+extern void process_header_content_type(void*, void*, void*);
 
 // extension header
 extern void process_header_cseq(void*, void*, void*);

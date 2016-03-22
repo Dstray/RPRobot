@@ -1,4 +1,22 @@
 #include "method.h"
+#include <time.h>
+
+#define ENTITY_BUFFER_SIZE 0x0400
+#define NTP_TIME_OFFSET 2208988800l
+#define VIDEO_PORT 554
+#define PAYLOAD_TYPE_JPEG 26 // https://tools.ietf.org/html/rfc3551#page-33
+
+static char entity_buf[ENTITY_BUFFER_SIZE];
+static int b_idx;
+static long session_id, version;
+static const char* ser_addr;
+static const char* cli_addr;
+
+void create_session(const char* sa, const char* ca) {
+    session_id = (long)time(NULL) + NTP_TIME_OFFSET;
+    ser_addr = sa;
+    cli_addr = ca;
+}
 
 extern struct header* get_header(const char* name, unsigned type);
 
@@ -8,6 +26,26 @@ void process_method_unsupported(void* p_req, void* p_res) {
 
 void process_method_describe(void* p_req, void* p_res) {
     process_header(p_req, p_res);
+    char *type = ((struct response*)p_res)->entity;
+    struct header* p_h;
+    if (type) {
+        p_h = get_header("Content-Type", HEADER_TYPE_ENTITY);
+        p_h->func((void*)p_h, type, p_res);
+
+        b_idx = 0;
+        version = (long)time(NULL) + NTP_TIME_OFFSET;
+        b_idx += sprintf(entity_buf + b_idx, "v=0\r\n");
+        b_idx += sprintf(entity_buf + b_idx, "o=- %ld %ld IN IP4 %s\r\n",
+            session_id, version, cli_addr);
+        b_idx += sprintf(entity_buf + b_idx, "s=RTSP Session\r\n");
+        b_idx += sprintf(entity_buf + b_idx, "c=IN IP4 %s\r\n", ser_addr);
+        b_idx += sprintf(entity_buf + b_idx, "t=%ld %ld\r\n", session_id, session_id + 1800);
+        b_idx += sprintf(entity_buf + b_idx, "m=video %d RTP/AVP %d\r\n", 44444, PAYLOAD_TYPE_JPEG);
+        ((struct response*)p_res)->entity = entity_buf;
+
+        p_h = get_header("Content-Length", HEADER_TYPE_ENTITY);
+        p_h->func((void*)p_h, &b_idx, p_res);
+    }
 }
 
 void process_method_options(void* p_req, void* p_res) {

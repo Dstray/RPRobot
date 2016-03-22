@@ -106,9 +106,9 @@ static struct header entity_headers[] = {
     { "Content-Base", process_header_default },             //entity
     { "Content-Encoding", process_header_default },         //SET_PARAMETER | (DESCRIBE, ANNOUNCE)
     { "Content-Language", process_header_default },         //DESCRIBE, ANNOUNCE
-    { "Content-Length", process_header_default },           //(SET_PARAMETER, ANNOUNCE) | entity
+    { "Content-Length", process_header_content_length },    //(SET_PARAMETER, ANNOUNCE) | entity
     { "Content-Location", process_header_default },         //entity
-    { "Content-Type", process_header_default },             //(SET_PARAMETER, ANNOUNCE) | entity
+    { "Content-Type", process_header_content_type },        //(SET_PARAMETER, ANNOUNCE) | entity
     { "Expires", process_header_default },                  //DESCRIBE, ANNOUNCE
     { "Last-Modified", process_header_default }             //entity
 };

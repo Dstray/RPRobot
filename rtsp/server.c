@@ -1,4 +1,5 @@
 #include "rtsp.h"
+#include <arpa/inet.h>
 
 #define BUFFER_SIZE 0x0400
 
@@ -93,7 +94,8 @@ int create_response_message(char* resbuf,
         n += sprintf(resbuf + n, "%s: %s\r\n",
             p_res->h_bufs.fields[i]->name, p_res->h_bufs.values[i]);
     n += sprintf(resbuf + n, "\r\n");
-    //TODO
+    if (p_res->entity)
+        n += sprintf(resbuf + n, "%s", p_res->entity);
     return n;
 }
 
@@ -125,11 +127,12 @@ int main(int argc, char *argv[])
         (struct sockaddr *) &cli_addr, 
         &clilen)) == -1) 
         errno_exit("accepting failed.");
+    create_session("127.0.0.1", inet_ntoa(cli_addr.sin_addr));
 
     struct request req;
     struct response res;
     char buffer[BUFFER_SIZE], resbuf[BUFFER_SIZE];
-    int n, cnt = 3;
+    int n, cnt = 4;
     while (cnt --) {
         CLEAR_BUF(buffer);
         if ((n = recv(newsockfd, buffer, BUFFER_SIZE - 1, 0)) == -1)

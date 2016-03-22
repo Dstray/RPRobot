@@ -23,7 +23,7 @@ int parse_request_line(char* buf, int len,
 }
 
 int parse_headers(char* buf, int len,
-    struct header_buffers* p_hbufs) {
+    struct header_buffer* p_hbuf) {
     char* rem = buf;
     int l_end, i_colon;
     while (1) {
@@ -34,26 +34,26 @@ int parse_headers(char* buf, int len,
 
         i_colon = find_char(':', rem, l_end);
         rem[i_colon] = '\0';
-        p_hbufs->fields[p_hbufs->num] = get_header(rem, HEADER_TYPE_REQ);
+        p_hbuf->fields[p_hbuf->num] = get_header(rem, HEADER_TYPE_REQ);
         assert(rem[i_colon + 1] == ' ');
         rem[l_end - 1] = '\0';
-        p_hbufs->values[p_hbufs->num] = rem + i_colon + 2;
+        p_hbuf->values[p_hbuf->num] = rem + i_colon + 2;
 
         rem += l_end + 1;
-        p_hbufs->num++;
+        p_hbuf->num++;
     }
     return rem - buf + 2;
 }
 
 int parse_request(char* buf, int len, struct request* p_req) {
     CLEAR(p_req->req_line);
-    p_req->h_bufs.num = 0;
+    p_req->h_buf.num = 0;
 
     int idx = 0;
     idx += parse_request_line(buf, len, &(p_req->req_line));
     if (idx == -1)
         return -1;
-    idx += parse_headers(buf + idx, len - idx, &(p_req->h_bufs));
+    idx += parse_headers(buf + idx, len - idx, &(p_req->h_buf));
     //idx = parse_message_body(buf[idx], len - idx);
     //TODO
     return idx;
@@ -64,9 +64,9 @@ void fprint_request(FILE* stream, struct request* p_req) {
     fprintf(stream, "%s %s %s\n", p_req->req_line.method,
         p_req->req_line.req_uri, p_req->req_line.version);
     int i;
-    for (i = 0; i != p_req->h_bufs.num; i++)
+    for (i = 0; i != p_req->h_buf.num; i++)
         fprintf(stream, "%s: %s\n",
-            p_req->h_bufs.fields[i]->name, p_req->h_bufs.values[i]);
+            p_req->h_buf.fields[i]->name, p_req->h_buf.values[i]);
 }
 
 void process_request(struct request* p_req, struct response* p_res) {
@@ -90,9 +90,9 @@ int create_response_message(char* resbuf,
         p_res->sta_line.version,
         p_res->sta_line.p_status->code,
         p_res->sta_line.p_status->reason_phrase);
-    for (i = 0; i != p_res->h_bufs.num; i++)
+    for (i = 0; i != p_res->h_buf.num; i++)
         n += sprintf(resbuf + n, "%s: %s\r\n",
-            p_res->h_bufs.fields[i]->name, p_res->h_bufs.values[i]);
+            p_res->h_buf.fields[i]->name, p_res->h_buf.values[i]);
     n += sprintf(resbuf + n, "\r\n");
     if (p_res->entity)
         n += sprintf(resbuf + n, "%s", p_res->entity);
@@ -132,11 +132,13 @@ int main(int argc, char *argv[])
     struct request req;
     struct response res;
     char buffer[BUFFER_SIZE], resbuf[BUFFER_SIZE];
-    int n, cnt = 4;
+    int n, cnt = 5;
     while (cnt --) {
         CLEAR_BUF(buffer);
         if ((n = recv(newsockfd, buffer, BUFFER_SIZE - 1, 0)) == -1)
             errno_exit("reading from socket failed");
+        //if (cnt == 1)
+        //    printf("{%s}\n", buffer);
         parse_request(buffer, n, &req);
         fprint_request(stdout, &req);
 

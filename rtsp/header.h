@@ -19,20 +19,23 @@ struct status_line {
     struct status* p_status;
 };
 
-struct header_buffers { //TODO
+struct header_buffer { //TODO
     int num;
     struct header* fields[10];
     char* values[10];
 };
 
+extern void add_header_str(struct header_buffer*, struct header*, char*);
+extern void add_header_int(struct header_buffer*, struct header*, long);
+
 struct request {
     struct request_line req_line;
-    struct header_buffers h_bufs;
+    struct header_buffer h_buf;
 };
 
 struct response {
     struct status_line sta_line;
-    struct header_buffers h_bufs;
+    struct header_buffer h_buf;
     char* entity;
 };
 
@@ -70,6 +73,7 @@ extern void process_header_content_type(void*, void*, void*);
 
 // extension header
 extern void process_header_cseq(void*, void*, void*);
+extern void process_header_transport(void*, void*, void*);
 
 static const char* const supported_methods[] = {
     "DESCRIBE",

@@ -80,7 +80,7 @@ static struct header general_headers[] = {
 };
 
 static struct header request_headers[] = {
-    { "Accept", process_header_accept },                   //entity
+    { "Accept", process_header_accept },                    //entity
     { "Accept-Encoding", process_header_default },          //entity
     { "Accept-Language", process_header_default },
     { "Authorization", process_header_default },
@@ -127,7 +127,7 @@ static struct header extension_headers[] = {
     { "Session", process_header_default },                  //all but SETUP, OPTIONS
     { "Speed", process_header_default },                    //PLAY
     { "Timestamp", process_header_default },///
-    { "Transport", process_header_default },                //SETUP
+    { "Transport", process_header_transport },              //SETUP
     { "Unsupported", process_header_default },
 };
 

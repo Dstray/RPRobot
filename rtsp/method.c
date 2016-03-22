@@ -28,9 +28,10 @@ void process_method_describe(void* p_req, void* p_res) {
     process_header(p_req, p_res);
     char *type = ((struct response*)p_res)->entity;
     struct header* p_h;
+    struct header_buffer* p_hbuf = &((struct response*)p_res)->h_buf;
     if (type) {
         p_h = get_header("Content-Type", HEADER_TYPE_ENTITY);
-        p_h->func((void*)p_h, type, p_res);
+        add_header_str(p_hbuf, p_h, type);
 
         b_idx = 0;
         version = (long)time(NULL) + NTP_TIME_OFFSET;
@@ -44,7 +45,7 @@ void process_method_describe(void* p_req, void* p_res) {
         ((struct response*)p_res)->entity = entity_buf;
 
         p_h = get_header("Content-Length", HEADER_TYPE_ENTITY);
-        p_h->func((void*)p_h, &b_idx, p_res);
+        add_header_int(p_hbuf, p_h, b_idx);
     }
 }
 
@@ -60,6 +61,12 @@ void process_method_play(void* p_req, void* p_res) {
 
 void process_method_setup(void* p_req, void* p_res) {
     process_header(p_req, p_res);
+    struct header_buffer* p_hbuf = &((struct response*)p_res)->h_buf;
+    struct header* p_h = get_header("Session", HEADER_TYPE_EXTENSION);
+    add_header_int(p_hbuf, p_h, session_id);
+    p_h = get_header("Date", HEADER_TYPE_GENERAL);
+    time_t curtime = time(NULL);
+    add_header_str(p_hbuf, p_h, asctime(localtime(&curtime)));
 }
 
 void process_method_teardown(void* p_req, void* p_res) {

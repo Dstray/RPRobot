@@ -3,7 +3,7 @@
 
 #define ENTITY_BUFFER_SIZE 0x0400
 #define NTP_TIME_OFFSET 2208988800l
-#define VIDEO_PORT 554
+#define VIDEO_PORT 4588
 #define PAYLOAD_TYPE_JPEG 26 // https://tools.ietf.org/html/rfc3551#page-33
 
 static char entity_buf[ENTITY_BUFFER_SIZE];
@@ -40,7 +40,7 @@ void process_method_describe(void* p_req, void* p_res) {
         b_idx += sprintf(entity_buf + b_idx, "s=RTSP Session\r\n");
         b_idx += sprintf(entity_buf + b_idx, "c=IN IP4 %s\r\n", ser_addr);
         b_idx += sprintf(entity_buf + b_idx, "t=%ld %ld\r\n", session_id, session_id + 1800);
-        b_idx += sprintf(entity_buf + b_idx, "m=video %d RTP/AVP %d\r\n", 44444, PAYLOAD_TYPE_JPEG);
+        b_idx += sprintf(entity_buf + b_idx, "m=video %d RTP/AVP %d\r\n", VIDEO_PORT, PAYLOAD_TYPE_JPEG);
         ((struct response*)p_res)->entity = entity_buf;
 
         p_h = get_header("Content-Length", HEADER_TYPE_ENTITY);

@@ -180,9 +180,14 @@ void process_header_transport(void* vp_hdr, void* vp_val, void* vp_msg) {
             }
             c++;
         }
+        if (sign_cli) {
+            cli_port = tmpbuf + b_idx;
+            b_idx += sprintf(cli_port, "%s", value) + 1;
+        }
         if (allowed) {
             c = tmpbuf + b_idx;
             b_idx += sprintf(c, "%s", trans);
+            printf("client_port: %s\n", cli_port);
             if (cli_port)
                 b_idx += sprintf(tmpbuf + b_idx, ";server_port=%d", 6403);
             b_idx++;

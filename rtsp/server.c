@@ -69,17 +69,18 @@ void fprint_request(FILE* stream, struct request* p_req) {
             p_req->h_buf.fields[i]->name, p_req->h_buf.values[i]);
 }
 
-void process_request(struct request* p_req, struct response* p_res) {
+int process_request(struct request* p_req, struct response* p_res) {
     CLEAR_BUF(p_res->sta_line.version);
-    int n_methods = SIZEOF(methods), i;
+    int n_methods = SIZEOF(methods), i, ret;
     for (i = 0; i != n_methods; i++)
         if (!strcmp(methods[i].name, p_req->req_line.method))
             break;
     if (i < n_methods)
-        methods[i].func(p_req, p_res);
+        ret = methods[i].func(p_req, p_res);
     else
-        process_method_unsupported(p_req, p_res);
+        ret = process_method_unsupported(p_req, p_res);
     strcpy(p_res->sta_line.version, RTSP_VERSION);
+    return ret;
 }
 
 int create_response_message(char* resbuf,
@@ -132,8 +133,13 @@ int main(int argc, char *argv[])
     struct request req;
     struct response res;
     char buffer[BUFFER_SIZE], resbuf[BUFFER_SIZE];
-    int n, cnt = 5;
+    int n, cnt = 6, ret = 0;
     while (cnt --) {
+        if (ret == 1) {
+            printf("=== cnt: %d ===\n", cnt);
+            
+            continue;
+        }
         CLEAR_BUF(buffer);
         if ((n = recv(newsockfd, buffer, BUFFER_SIZE - 1, 0)) == -1)
             errno_exit("reading from socket failed");
@@ -142,7 +148,7 @@ int main(int argc, char *argv[])
         parse_request(buffer, n, &req);
         fprint_request(stdout, &req);
 
-        process_request(&req, &res);
+        ret = process_request(&req, &res);
         n = create_response_message(resbuf, &res);
         if ((n = send(newsockfd, resbuf, n, 0)) == -1)
             errno_exit("writing to socket failed");

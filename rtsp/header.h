@@ -41,7 +41,7 @@ struct response {
 
 struct method {
     const char* name;
-    void (*func)(void*, void*); // (struct request*, struct response*)
+    int (*func)(void*, void*); // (struct request*, struct response*)
 };
 
 struct header {

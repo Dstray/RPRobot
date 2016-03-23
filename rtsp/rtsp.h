@@ -121,8 +121,8 @@ static struct header extension_headers[] = {
     { "Host", process_header_default },///
     { "If-Match", process_header_default },///
     { "Proxy-Require", process_header_default },
-    { "Require", process_header_default },
     { "RTP-Info", process_header_default },                 //PLAY
+    { "Require", process_header_default },
     { "Scale", process_header_default },                    //PLAY, RECORD
     { "Session", process_header_default },                  //all but SETUP, OPTIONS
     { "Speed", process_header_default },                    //PLAY

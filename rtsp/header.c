@@ -187,9 +187,8 @@ void process_header_transport(void* vp_hdr, void* vp_val, void* vp_msg) {
         if (allowed) {
             c = tmpbuf + b_idx;
             b_idx += sprintf(c, "%s", trans);
-            printf("client_port: %s\n", cli_port);
             if (cli_port)
-                b_idx += sprintf(tmpbuf + b_idx, ";server_port=%d", 6403);
+                b_idx += sprintf(tmpbuf + b_idx, ";server_port=%d-%d", 6403, 6404);
             b_idx++;
             add_header(&((struct response*)vp_msg)->h_buf, (struct header*)vp_hdr, c);
         } else ; //TODO

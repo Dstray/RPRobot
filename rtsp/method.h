@@ -8,9 +8,9 @@
 #define NTP_TIME_OFFSET 2208988800l
 #define PAYLOAD_TYPE_JPEG 26 // https://tools.ietf.org/html/rfc3551#page-33
 
-static unsigned short seq;
-static unsigned int rtptime;
-static unsigned int ssrc;
+unsigned short seq;
+unsigned int rtptime;
+unsigned int ssrc;
 
 extern int process_method_unsupported(void*, void*);
 extern int process_method_describe(void*, void*);

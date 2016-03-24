@@ -5,7 +5,6 @@
 #define BUFFER_SIZE 0x0400
 #define RTP_BUFFER_SIZE 0x4000
 
-#define hton_3byte(h) ((h << 16) & 0xFF0000 | h & 0xFF00 | (h >> 16) & 0xFF)
 #define find_linefeed(s, l) find_char('\n', s, l)
 
 int find_char(char c, char* s, int l) {
@@ -138,22 +137,24 @@ int main(int argc, char *argv[])
     char buffer[BUFFER_SIZE], resbuf[BUFFER_SIZE];
     unsigned char rtp_buffer[RTP_BUFFER_SIZE];
 
-    unsigned short msg_len = htons(14908);
+    unsigned short msg_len = htons(13845);
     rtp_hdr_t rtp_hdr;
     rtp_hdr.version = RTP_VERSION;
-    rtp_hdr.p = rtp_hdr.x = rtp_hdr.m = 0;
+    rtp_hdr.p = rtp_hdr.x = 0;
+    rtp_hdr.m = 1;
     rtp_hdr.cc = 0;
     rtp_hdr.pt = PAYLOAD_TYPE_JPEG;
     jpeg_hdr_t jpeg_hdr;
     CLEAR(jpeg_hdr);
+    jpeg_hdr.fragment_offset = htonl(0) >> 8;
     jpeg_hdr.type = 0;
-    jpeg_hdr.q = 92;///
     jpeg_hdr.width = 80;
     jpeg_hdr.height = 60;
-    int n, cnt = 0, ret = 0;
-    while (1) {
-        if (ret == 1) {
-            printf("=== cnt: %d ===\n", ++cnt);
+    struct timespec interval = { 0, 33300000l };
+    int n, cnt = 105, ret = 0;
+    while (cnt--) {
+        if (ret == 2) {
+            printf("=== cnt: %d ===\n", cnt);
             CLEAR_BUF(rtp_buffer);
             rtp_buffer[0] = 0x24;
             rtp_buffer[1] = 0;
@@ -161,11 +162,11 @@ int main(int argc, char *argv[])
             memcpy(rtp_buffer + n, &msg_len, sizeof msg_len);
             n += sizeof msg_len;
             rtp_hdr.seq = htons(seq++);
-            rtp_hdr.ts = htonl(rtptime + (int)(clock() / CLOCKS_PER_SEC));
+            rtp_hdr.ts = htonl(rtptime += 3000);
             rtp_hdr.ssrc = ssrc;
             n += 12;
             memcpy(rtp_buffer + n, &rtp_hdr, 12);
-            jpeg_hdr.fragment_offset = hton_3byte(n + sizeof jpeg_hdr);
+            jpeg_hdr.q = cnt;///
             memcpy(rtp_buffer + n, &jpeg_hdr, sizeof jpeg_hdr);
             n += sizeof jpeg_hdr;
             FILE* fd = fopen("frame.im", "rb");
@@ -173,15 +174,14 @@ int main(int argc, char *argv[])
             fclose(fd);
             if ((n = send(newsockfd, rtp_buffer, n, 0)) == -1)
                 errno_exit("writing to socket failed");
-            printf("size: %d, offset: 0x%06x, len = 0x%04x\n{%s}\n",
-                n, jpeg_hdr.fragment_offset, msg_len, rtp_buffer);
+            printf("size: %d, offset: 0x%06x, len = 0x%04x, seq: %d, rtptime: %d\n",
+                n, jpeg_hdr.fragment_offset, msg_len, seq, rtptime);
+            nanosleep(&interval, NULL);
             continue;
         }
         CLEAR_BUF(buffer);
         if ((n = recv(newsockfd, buffer, BUFFER_SIZE - 1, 0)) == -1)
             errno_exit("reading from socket failed");
-        if (cnt == 1)
-            printf("{%s}\n", buffer);
         parse_request(buffer, n, &req);
         fprint_request(stdout, &req);
 
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
         n = create_response_message(resbuf, &res);
         if ((n = send(newsockfd, resbuf, n, 0)) == -1)
             errno_exit("writing to socket failed");
-        printf("====== response ======\n%s\n", resbuf);
+        printf("====== response %d ======\n%s\n", cnt, resbuf);
     }
 
     close(newsockfd);

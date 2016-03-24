@@ -1,7 +1,7 @@
 #include "method.h"
 
 #define ENTITY_BUFFER_SIZE 0x0400
-#define VIDEO_PORT 554
+#define VIDEO_PORT 5004
 
 static char entity_buf[ENTITY_BUFFER_SIZE];
 static int b_idx;
@@ -33,13 +33,13 @@ int process_method_describe(void* p_req, void* p_res) {
 
         b_idx = 0;
         version = (long)time(NULL) + NTP_TIME_OFFSET;
-        b_idx += sprintf(entity_buf + b_idx, "v=0\r\n");
-        b_idx += sprintf(entity_buf + b_idx, "o=- %ld %ld IN IP4 %s\r\n",
-            session_id, version, cli_addr);
-        b_idx += sprintf(entity_buf + b_idx, "s=RTSP Session\r\n");
-        b_idx += sprintf(entity_buf + b_idx, "c=IN IP4 %s\r\n", ser_addr);
-        b_idx += sprintf(entity_buf + b_idx, "t=%ld %ld\r\n", session_id, session_id + 1800);
-        b_idx += sprintf(entity_buf + b_idx, "m=video %d RTP/AVP %d\r\n", VIDEO_PORT, PAYLOAD_TYPE_JPEG);
+        //b_idx += sprintf(entity_buf + b_idx, "v=0\r\n");
+        //b_idx += sprintf(entity_buf + b_idx, "o=- %ld %ld IN IP4 %s\r\n",
+        //    session_id, version, cli_addr);
+        //b_idx += sprintf(entity_buf + b_idx, "s=RTSP Session\r\n");
+        //b_idx += sprintf(entity_buf + b_idx, "c=IN IP4 %s\r\n", ser_addr);
+        //b_idx += sprintf(entity_buf + b_idx, "t=%ld %ld\r\n", session_id, session_id + 1800);
+        b_idx += sprintf(entity_buf + b_idx, "m=video %d RTP/AVP %d\r\n", 0, PAYLOAD_TYPE_JPEG);
         ((struct response*)p_res)->entity = entity_buf;
 
         p_h = get_header("Content-Length", HEADER_TYPE_ENTITY);
@@ -75,7 +75,7 @@ int process_method_play(void* p_req, void* p_res) {
     rtptime = rand() % 0x8000000;
     ssrc = rand();
     sprintf(entity_buf, "url=%s;seq=%hd;rtptime=%d",
-        "rtsp://166.111.226.160:554", seq, rtptime + (int)(clock() / CLOCKS_PER_SEC));
+        "rtsp://166.111.226.160:554", seq, rtptime);
     add_header_str(p_hbuf, p_h, entity_buf);
     return 1;
 }

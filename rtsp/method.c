@@ -1,22 +1,17 @@
 #include "method.h"
-#include <time.h>
 
 #define ENTITY_BUFFER_SIZE 0x0400
-#define NTP_TIME_OFFSET 2208988800l
-#define VIDEO_PORT 4588
-#define PAYLOAD_TYPE_JPEG 26 // https://tools.ietf.org/html/rfc3551#page-33
+#define VIDEO_PORT 554
 
 static char entity_buf[ENTITY_BUFFER_SIZE];
 static int b_idx;
 static long session_id, version;
 static const char* ser_addr;
 static const char* cli_addr;
-static unsigned short seq;
-static unsigned int rtptime;
 
 void create_session(const char* sa, const char* ca) {
     session_id = (long)time(NULL) + NTP_TIME_OFFSET;
-    ser_addr = sa;
+    ser_addr = "192.168.1.113";
     cli_addr = ca;
 }
 
@@ -77,9 +72,10 @@ int process_method_play(void* p_req, void* p_res) {
     p_h = get_header("RTP-Info", HEADER_TYPE_EXTENSION);
     srand((unsigned)curtime);
     seq = rand() % 0x8000;
-    rtptime = rand() % 0x8000000;// + (int)(clock() / CLOCKS_PER_SEC);
+    rtptime = rand() % 0x8000000;
+    ssrc = rand();
     sprintf(entity_buf, "url=%s;seq=%hd;rtptime=%d",
-        "rtsp://166.111.226.160:554", seq, rtptime);
+        "rtsp://166.111.226.160:554", seq, rtptime + (int)(clock() / CLOCKS_PER_SEC));
     add_header_str(p_hbuf, p_h, entity_buf);
     return 1;
 }

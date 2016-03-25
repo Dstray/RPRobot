@@ -1,10 +1,6 @@
 #ifndef __RTSP_H__
 #define __RTSP_H__ 1
 
-#include "../common/common.h"
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include "header.h"
 #include "method.h"
 

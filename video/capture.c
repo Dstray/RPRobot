@@ -17,7 +17,7 @@ static int xioctl(int fd, int request, void* argp) {
 }
 
 void process_image(unsigned char* rdata, int size) {
-    check_dht(rdata, &size);
+    jpeg_check_dht(rdata, &size);
     FILE* fp = fopen("frame.im", "wb");
     /*int i, j;
     for (i = 0; i != 614400;) {
@@ -586,11 +586,18 @@ int main(int argc, char** argv) {
         }
     }
 
+    struct buffer* imgbuf;
+    struct jpeg_frame jframe;
     int fd = open_device(dev_name);
     init_device(fd, dev_name, io, 4);
     start_capturing(fd, io);
-    while (frame_count--)
-        capture(fd, io);
+    while (frame_count--) {
+        imgbuf = capture(fd, io);
+        CLEAR(jframe);
+        jpeg_get_frame_details(imgbuf->start, imgbuf->length, &jframe);
+        printf("data size: %d, q table size: %d\n", jframe.data_size, jframe.qt_size);
+        printf("w: %d, h: %d, ri: %d\n", jframe.width, jframe.height, jframe.restart_interval);
+    }
     stop_capturing(fd, io);
     close_device(fd, io);
 

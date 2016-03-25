@@ -11,7 +11,7 @@ static const char* cli_addr;
 
 void create_session(const char* sa, const char* ca) {
     session_id = (long)time(NULL) + NTP_TIME_OFFSET;
-    ser_addr = "192.168.1.113";
+    ser_addr = sa;
     cli_addr = ca;
 }
 
@@ -39,7 +39,7 @@ int process_method_describe(void* p_req, void* p_res) {
         //b_idx += sprintf(entity_buf + b_idx, "s=RTSP Session\r\n");
         //b_idx += sprintf(entity_buf + b_idx, "c=IN IP4 %s\r\n", ser_addr);
         //b_idx += sprintf(entity_buf + b_idx, "t=%ld %ld\r\n", session_id, session_id + 1800);
-        b_idx += sprintf(entity_buf + b_idx, "m=video %d RTP/AVP %d\r\n", 0, PAYLOAD_TYPE_JPEG);
+        b_idx += sprintf(entity_buf + b_idx, "m=video %d RTP/AVP %d\r\n", 0, RTP_PT_JPEG);
         ((struct response*)p_res)->entity = entity_buf;
 
         p_h = get_header("Content-Length", HEADER_TYPE_ENTITY);

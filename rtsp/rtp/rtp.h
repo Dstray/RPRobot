@@ -1,7 +1,11 @@
 /*
  * rtp.h  --  RTP header file
  */
-#include <sys/types.h>
+#include "../../common/common.h"
+#include "../../video/imgproc.h"
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 /*
  * The type definitions below are valid for 32-bit architectures and
@@ -55,6 +59,8 @@ typedef struct {
     u_int32 ssrc;             /* synchronization source */
     u_int32 csrc[1];          /* optional CSRC list */
 } rtp_hdr_t;
+
+#define RTP_HDR_SIZE 12
 
 /*
 * RTCP common header word
@@ -150,3 +156,5 @@ typedef struct {
     u_int32 jitter;         /* estimated jitter */
     /* ... */
 } source;
+
+#define RTP_PACKET_SIZE_MAX 0x1000

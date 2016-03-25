@@ -3,10 +3,10 @@
 
 #include "../common/common.h"
 #include "header.h"
+#include "rtp/rtp.h"
 #include <time.h>
 
 #define NTP_TIME_OFFSET 2208988800l
-#define PAYLOAD_TYPE_JPEG 26 // https://tools.ietf.org/html/rfc3551#page-33
 
 unsigned short seq;
 unsigned int rtptime;

@@ -1,9 +1,8 @@
 #include "rtsp.h"
-#include "rtp/rtp.h"
 #include <arpa/inet.h>
 
 #define BUFFER_SIZE 0x0400
-#define RTP_BUFFER_SIZE 0x4000
+#define IMG_BUFFER_SIZE 0x8000
 
 #define find_linefeed(s, l) find_char('\n', s, l)
 
@@ -127,55 +126,27 @@ int main(int argc, char *argv[])
     socklen_t clilen = sizeof cli_addr;
     int newsockfd;
     if ((newsockfd = accept(sockfd, 
-        (struct sockaddr *) &cli_addr, 
-        &clilen)) == -1) 
+        (struct sockaddr *) &cli_addr, &clilen)) == -1) 
         errno_exit("accepting failed.");
-    create_session("127.0.0.1", inet_ntoa(cli_addr.sin_addr));
+    create_session("192.168.1.113", inet_ntoa(cli_addr.sin_addr));
 
     struct request req;
     struct response res;
+    struct jpeg_frame jframe;
     char buffer[BUFFER_SIZE], resbuf[BUFFER_SIZE];
-    unsigned char rtp_buffer[RTP_BUFFER_SIZE];
-
-    unsigned short msg_len = htons(13845);
-    rtp_hdr_t rtp_hdr;
-    rtp_hdr.version = RTP_VERSION;
-    rtp_hdr.p = rtp_hdr.x = 0;
-    rtp_hdr.m = 1;
-    rtp_hdr.cc = 0;
-    rtp_hdr.pt = PAYLOAD_TYPE_JPEG;
-    jpeg_hdr_t jpeg_hdr;
-    CLEAR(jpeg_hdr);
-    jpeg_hdr.fragment_offset = htonl(0) >> 8;
-    jpeg_hdr.type = 0;
-    jpeg_hdr.width = 80;
-    jpeg_hdr.height = 60;
+    unsigned char img_buffer[IMG_BUFFER_SIZE];
     struct timespec interval = { 0, 33300000l };
     int n, cnt = 105, ret = 0;
     while (cnt--) {
-        if (ret == 2) {
+        if (ret == 1) {
             printf("=== cnt: %d ===\n", cnt);
-            CLEAR_BUF(rtp_buffer);
-            rtp_buffer[0] = 0x24;
-            rtp_buffer[1] = 0;
-            n = 2;
-            memcpy(rtp_buffer + n, &msg_len, sizeof msg_len);
-            n += sizeof msg_len;
-            rtp_hdr.seq = htons(seq++);
-            rtp_hdr.ts = htonl(rtptime += 3000);
-            rtp_hdr.ssrc = ssrc;
-            n += 12;
-            memcpy(rtp_buffer + n, &rtp_hdr, 12);
-            jpeg_hdr.q = cnt;///
-            memcpy(rtp_buffer + n, &jpeg_hdr, sizeof jpeg_hdr);
-            n += sizeof jpeg_hdr;
+            CLEAR(jframe);
             FILE* fd = fopen("frame.im", "rb");
-            n += fread(rtp_buffer + n, 1, RTP_BUFFER_SIZE - n, fd);
+            n = fread(img_buffer, 1, IMG_BUFFER_SIZE, fd);
             fclose(fd);
-            if ((n = send(newsockfd, rtp_buffer, n, 0)) == -1)
-                errno_exit("writing to socket failed");
-            printf("size: %d, offset: 0x%06x, len = 0x%04x, seq: %d, rtptime: %d\n",
-                n, jpeg_hdr.fragment_offset, msg_len, seq, rtptime);
+            jpeg_get_frame_details(img_buffer, n, &jframe);
+            printf("data size: %d/%d, q table size: %d\n", jframe.data_size, n, jframe.qt_size);
+            printf("w: %d, h: %d, ri: %d\n", jframe.width, jframe.height, jframe.restart_interval);
             nanosleep(&interval, NULL);
             continue;
         }

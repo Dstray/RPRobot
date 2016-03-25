@@ -158,3 +158,6 @@ typedef struct {
 } source;
 
 #define RTP_PACKET_SIZE_MAX 0x1000
+
+extern u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts,
+    u_int32 ssrc, struct jpeg_frame* p_jframe, u_int8 q, int ic);

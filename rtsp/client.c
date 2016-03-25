@@ -31,19 +31,19 @@ int main(int argc, char *argv[])
         sizeof serv_addr) == -1) 
         errno_exit("connecting failed");
 
-    char buffer[BUFFER_SIZE];
-    memset(buffer, 0, BUFFER_SIZE);
+    char buffer[RTP_PACKET_SIZE_MAX];
+    memset(buffer, 0, RTP_PACKET_SIZE_MAX);
 
     int n;
-    n = sprintf(buffer, "OPTIONS rtsp://c.itvitv.com/mega RTSP/1.0\r\n%s\r\n%s\r\n",
-        "CSeq: 2", "User-Agent: LibVLC/2.1.6 (LIVE555 Streaming Media v2014.01.13)");
-    if ((n = send(sockfd, buffer, n, 0)) == -1)
-        errno_exit("writing to socket failed");
-
-    memset(buffer, 0, BUFFER_SIZE);
-    if ((n = recv(sockfd, buffer, BUFFER_SIZE - 1, 0)) == -1) 
-         errno_exit("reading from socket failed");
-    printf("====== message ======\n%s\n", buffer);
+    FILE* fd = fopen("frame.rcv", "wb");
+    while (1) {
+        if ((n = recv(sockfd, buffer, RTP_PACKET_SIZE_MAX, 0)) == -1) 
+            errno_exit("reading from socket failed");
+        if (n <= 2)
+            break;
+        fwrite(buffer, 1, n, fd);
+    }
+    fclose(fd);
 
     close(sockfd);
     return 0;

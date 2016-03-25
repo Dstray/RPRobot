@@ -61,7 +61,7 @@ u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts, u_int32 ssrc
     rtphdr.pt = RTP_PT_JPEG;
     rtphdr.seq = start_seq;
     rtphdr.ts = ts;
-    rtphdr.ssrc = ssrc;
+    rtphdr.ssrc = ssrc;printf("%02x\n", *(u_int8*)(&rtphdr));
 
     /* Initialize JPEG header
      */

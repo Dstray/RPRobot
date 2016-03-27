@@ -48,7 +48,7 @@ u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts, u_int32 ssrc
     u_int8 *ptr;
     int bytes_left = p_jframe->data_size;
     int qt_len = p_jframe->qt_size, dri = p_jframe->restart_interval;
-    int pkt_len, data_len;
+    int pkt_len, data_len, offset = 0;
     int rtp_hdr_len = ic < 0 ? RTP_HDR_SIZE : RTP_HDR_SIZE + 4;
 
     /* Initialize RTP header
@@ -59,8 +59,8 @@ u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts, u_int32 ssrc
     rtphdr.cc = 0;
     rtphdr.m = 0;
     rtphdr.pt = RTP_PT_JPEG;
-    rtphdr.seq = start_seq;
-    rtphdr.ts = ts;
+    rtphdr.seq = htons(start_seq);
+    rtphdr.ts = htonl(ts);
     rtphdr.ssrc = ssrc;printf("%02x\n", *(u_int8*)(&rtphdr));
 
     /* Initialize JPEG header
@@ -129,7 +129,7 @@ u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts, u_int32 ssrc
 
         jpghdr.off += data_len;
         bytes_left -= data_len;
-        rtphdr.seq++;
+        rtphdr.seq = htons(++start_seq);
     }
     return rtphdr.seq;
 }

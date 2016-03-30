@@ -42,14 +42,14 @@ void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
 void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
     fprintf(stream, "Buffer %d:\n", pbuf->index);
     fprintf(stream, "  bytesused:    %d\n", pbuf->bytesused);
-    //fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
-    //fprintf(stream, "  field:        %d\n", pbuf->field);
+    fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
+    fprintf(stream, "  field:        %d\n", pbuf->field);
     fprintf(stream, "  timestamp:    %dus\n", (int)pbuf->timestamp.tv_usec);
     //fprint_timecode(stream, &(pbuf->timecode));
     fprintf(stream, "  sequence:     %d\n", pbuf->sequence);
-    //fprintf(stream, "  memory:       %d\n", pbuf->memory);
-    //fprintf(stream, "  length:       %d\n", pbuf->length);
-    //fprintf(stream, "  offset:       %d\n", pbuf->m.offset);
+    fprintf(stream, "  memory:       %d\n", pbuf->memory);
+    fprintf(stream, "  length:       %d\n", pbuf->length);
+    fprintf(stream, "  offset:       %d\n", pbuf->m.offset);
 }
 
 int read_frame(int fd, enum io_method io) {
@@ -87,7 +87,7 @@ int read_frame(int fd, enum io_method io) {
         buffers[i].length = buf.bytesused;
         if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
             errno_exit("VIDIOC_QBUF");
-        fprint_buffer_status(stdout, &buf);
+        //fprint_buffer_status(stdout, &buf);
         break;
     case IO_METHOD_USERPTR:
         CLEAR(buf);

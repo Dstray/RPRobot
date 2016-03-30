@@ -47,14 +47,14 @@ int main(int argc, char *argv[])
         imgbuf = capture(fd, io);
         pkg_start = imgbuf->start;
         pkg_left = imgbuf->length;
-        printf("byteused: %d\n", pkg_left);
+        //printf("byteused: %d\n", pkg_left);
         seq = 0;
         while (pkg_left > IMG_PACKAGE_SIZE - 4) {
             pkgbuf[0] = '$';
             pkgbuf[1] = seq++;
             pkgbuf[2] = ((IMG_PACKAGE_SIZE - 4) >> 8) & 0xFF;
             pkgbuf[3] = (IMG_PACKAGE_SIZE - 4) & 0xFF;
-            printf("seq: %d, 0x%02x%02x\n", pkgbuf[1], pkgbuf[2], pkgbuf[3]);
+            //printf("seq: %d, 0x%02x%02x\n", pkgbuf[1], pkgbuf[2], pkgbuf[3]);
             memcpy(pkgbuf + 4, pkg_start, IMG_PACKAGE_SIZE - 4);
             send(newsockfd, pkgbuf, IMG_PACKAGE_SIZE, 0);
             pkg_start += (IMG_PACKAGE_SIZE - 4);
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
         pkgbuf[1] = '^';
         pkgbuf[2] = (pkg_left >> 8) & 0xFF;
         pkgbuf[3] = pkg_left & 0xFF;
-        printf("seq: %d, 0x%02x%02x\n", pkgbuf[1], pkgbuf[2], pkgbuf[3]);
+        //printf("seq: %d, 0x%02x%02x\n", pkgbuf[1], pkgbuf[2], pkgbuf[3]);
         memcpy(pkgbuf + 4, pkg_start, pkg_left);
         send(newsockfd, pkgbuf, pkg_left + 4, 0);
     }

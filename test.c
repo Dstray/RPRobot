@@ -39,18 +39,34 @@ int main(int argc, char *argv[])
         (struct sockaddr *) &cli_addr, &clilen)) == -1) 
         errno_exit("accepting failed.");
 
-    int pkg_start, pkg_left;
+    unsigned char* pkg_start;
+    int pkg_left, cnt = 3000, seq;
     struct buffer* imgbuf;
-    while (1) {
+    unsigned char pkgbuf[IMG_PACKAGE_SIZE] = {0};
+    while (cnt--) {
         imgbuf = capture(fd, io);
         pkg_start = imgbuf->start;
         pkg_left = imgbuf->length;
-        while (pkg_left > IMG_PACKAGE_SIZE) {
-            send(newsockfd, pkg_start, IMG_PACKAGE_SIZE, 0);
-            pkg_start += IMG_PACKAGE_SIZE;
-            pkg_left -= IMG_PACKAGE_SIZE;
+        printf("byteused: %d\n", pkg_left);
+        seq = 0;
+        while (pkg_left > IMG_PACKAGE_SIZE - 4) {
+            pkgbuf[0] = '$';
+            pkgbuf[1] = seq++;
+            pkgbuf[2] = ((IMG_PACKAGE_SIZE - 4) >> 8) & 0xFF;
+            pkgbuf[3] = (IMG_PACKAGE_SIZE - 4) & 0xFF;
+            printf("seq: %d, 0x%02x%02x\n", pkgbuf[1], pkgbuf[2], pkgbuf[3]);
+            memcpy(pkgbuf + 4, pkg_start, IMG_PACKAGE_SIZE - 4);
+            send(newsockfd, pkgbuf, IMG_PACKAGE_SIZE, 0);
+            pkg_start += (IMG_PACKAGE_SIZE - 4);
+            pkg_left -= (IMG_PACKAGE_SIZE - 4);
         }
-        send(newsockfd, pkg_start, pkg_left, 0);
+        pkgbuf[0] = '$';
+        pkgbuf[1] = '^';
+        pkgbuf[2] = (pkg_left >> 8) & 0xFF;
+        pkgbuf[3] = pkg_left & 0xFF;
+        printf("seq: %d, 0x%02x%02x\n", pkgbuf[1], pkgbuf[2], pkgbuf[3]);
+        memcpy(pkgbuf + 4, pkg_start, pkg_left);
+        send(newsockfd, pkgbuf, pkg_left + 4, 0);
     }
 
     stop_capturing(fd, io);

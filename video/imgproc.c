@@ -1,6 +1,6 @@
 #include "imgproc.h"
 
-int jpeg_check_dht(unsigned char* imgbuf, int* imgsz) {
+int jpeg_check_dht(unsigned char* imgbuf, size_t* imgsz) {
     unsigned char* ptr = imgbuf;
     unsigned char* bufend = imgbuf + *imgsz;
     while (ptr < bufend) {

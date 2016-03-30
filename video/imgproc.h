@@ -55,7 +55,7 @@
 };
 
 /* The MJPEG from the webcam device may lack a huffman table. */
-extern int jpeg_check_dht(unsigned char* imgbuf, int* imgsz);
+extern int jpeg_check_dht(unsigned char* imgbuf, size_t* imgsz);
 /* Return 0 for success. */
 
 #define RTP_PT_JPEG 26

@@ -16,18 +16,17 @@ static int xioctl(int fd, int request, void* argp) {
     return r;
 }
 
-void process_image(unsigned char* rdata, int size) {
-    jpeg_check_dht(rdata, &size);
-    FILE* fp = fopen("frame.im", "wb");
+void process_image(unsigned char* rdata, size_t* psize) {
+    jpeg_check_dht(rdata, psize);
+    //FILE* fp = fopen("frame.im", "wb");
     /*int i, j;
     for (i = 0; i != 614400;) {
         for (j = 0; j != 1280; j++, i++)
             fprintf(fp, "%02x", rdata[i]);
         fprintf(fp, "\n");
     }*/
-    fwrite(rdata, sizeof(unsigned char), size, fp);
-    fclose(fp);
-    
+    //fwrite(rdata, sizeof(unsigned char), size, fp);
+    //fclose(fp);
 }
 
 void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
@@ -43,14 +42,14 @@ void fprint_timecode(FILE* stream, struct v4l2_timecode* ptcode) {
 void fprint_buffer_status(FILE* stream, struct v4l2_buffer* pbuf) {
     fprintf(stream, "Buffer %d:\n", pbuf->index);
     fprintf(stream, "  bytesused:    %d\n", pbuf->bytesused);
-    fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
-    fprintf(stream, "  field:        %d\n", pbuf->field);
+    //fprintf(stream, "  flags:        0x%08x\n", pbuf->flags);
+    //fprintf(stream, "  field:        %d\n", pbuf->field);
     fprintf(stream, "  timestamp:    %dus\n", (int)pbuf->timestamp.tv_usec);
     //fprint_timecode(stream, &(pbuf->timecode));
     fprintf(stream, "  sequence:     %d\n", pbuf->sequence);
-    fprintf(stream, "  memory:       %d\n", pbuf->memory);
-    fprintf(stream, "  length:       %d\n", pbuf->length);
-    fprintf(stream, "  offset:       %d\n", pbuf->m.offset);
+    //fprintf(stream, "  memory:       %d\n", pbuf->memory);
+    //fprintf(stream, "  length:       %d\n", pbuf->length);
+    //fprintf(stream, "  offset:       %d\n", pbuf->m.offset);
 }
 
 int read_frame(int fd, enum io_method io) {
@@ -115,7 +114,7 @@ int read_frame(int fd, enum io_method io) {
         fprint_buffer_status(stdout, &buf);
         break;
     }
-    process_image(buffers[i].start, buffers[i].length);
+    process_image(buffers[i].start, &buffers[i].length);
     return i;
 }
 
@@ -539,7 +538,7 @@ static const struct option long_options[] = {
     { "count",  required_argument,  NULL, 'c' },
     { 0, 0, 0, 0 } // last element
 };
-
+/*
 int main(int argc, char** argv) {
     int c, ind;
     while ((c = getopt_long(argc, argv, short_options, long_options, &ind)) != -1) {
@@ -563,7 +562,7 @@ int main(int argc, char** argv) {
             break;/*
         case 'o':
             out_buf++;
-            break;*/
+            break;*//*
         case 'f':
             errno = 0;
             frames_per_sec = strtol(optarg, NULL, 0);
@@ -602,4 +601,4 @@ int main(int argc, char** argv) {
     close_device(fd, io);
 
     return 0;
-}
+}*/

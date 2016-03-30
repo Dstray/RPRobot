@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     }*/
     unsigned long c_addr;
     memcpy(&c_addr, &cli_addr.sin_addr.s_addr, sizeof c_addr);
-    printf("0x%08x\n", c_addr);
+    //printf("0x%08x\n", c_addr);
     CLEAR_BUF(img_buffer);
     FILE* fd = fopen("frame.im", "rb");
     while (1) {

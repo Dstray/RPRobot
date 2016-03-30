@@ -2,7 +2,7 @@
 #include <arpa/inet.h>
 
 #define BUFFER_SIZE 0x0400
-#define IMG_BUFFER_SIZE 0x8000
+#define IMG_BUFFER_SIZE 0x1000
 
 #define find_linefeed(s, l) find_char('\n', s, l)
 
@@ -127,29 +127,33 @@ int main(int argc, char *argv[])
     int newsockfd;
     if ((newsockfd = accept(sockfd, 
         (struct sockaddr *) &cli_addr, &clilen)) == -1) 
-        errno_exit("accepting failed.");
+        errno_exit("accepting failed.");/*
     create_session("192.168.1.113", inet_ntoa(cli_addr.sin_addr));
 
     struct request req;
     struct response res;
     struct jpeg_frame jframe;
-    char buffer[BUFFER_SIZE], resbuf[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE], resbuf[BUFFER_SIZE];*/
     unsigned char img_buffer[IMG_BUFFER_SIZE];
     struct timespec interval = { 0, 33300000l };
     int n, cnt = 105, ret = 0;/*
-    while (cnt--) {
+    while (1) {
         if (ret == 1) {
-            printf("=== cnt: %d ===\n", cnt);*/
+            printf("=== cnt: %d ===\n", cnt--);/*
+            srand(time(NULL));
+            seq = rand() % 0x8000;
+            rtptime = rand() % 0x8000000;
+            ssrc = rand();*//*
             CLEAR(jframe);
             FILE* fd = fopen("frame.im", "rb");
             n = fread(img_buffer, 1, IMG_BUFFER_SIZE, fd);
             fclose(fd);
             jpeg_get_frame_details(img_buffer, n, &jframe);
-            printf("data size: %d/%d, q table size: %d\n", jframe.data_size, n, jframe.qt_size);
-            printf("w: %d, h: %d, ri: %d\n", jframe.width, jframe.height, jframe.restart_interval);
-            printf("seq: %d, ts: %d, ssrc: 0x%08x\n", seq, rtptime, ssrc);
-            seq = rtp_send_jframe(newsockfd, seq, rtptime, ssrc, &jframe, RTP_JEPG_Q, 0);
-            rtptime += 300;/*
+            //printf("data size: %d/%d, q table size: %d\n", jframe.data_size, n, jframe.qt_size);
+            //printf("w: %d, h: %d, ri: %d\n", jframe.width, jframe.height, jframe.restart_interval);
+            //printf("seq: 0x%08x, ts: 0x%08x, ssrc: 0x%08x\n", seq, rtptime, ssrc);
+            /*seq = rtp_send_jframe(newsockfd, seq, rtptime, ssrc, &jframe, RTP_JEPG_Q, 0);
+            rtptime += 300;
             nanosleep(&interval, NULL);
             continue;
         }
@@ -164,7 +168,22 @@ int main(int argc, char *argv[])
         if ((n = send(newsockfd, resbuf, n, 0)) == -1)
             errno_exit("writing to socket failed");
         printf("====== response %d ======\n%s\n", cnt, resbuf);
-    }*/n = sprintf(resbuf, "x"); send(newsockfd, resbuf, n, 0);
+    }*/
+    unsigned long c_addr;
+    memcpy(&c_addr, &cli_addr.sin_addr.s_addr, sizeof c_addr);
+    printf("0x%08x\n", c_addr);
+    CLEAR_BUF(img_buffer);
+    FILE* fd = fopen("frame.im", "rb");
+    while (1) {
+        n = fread(img_buffer, 1, IMG_BUFFER_SIZE, fd);
+        send(newsockfd, img_buffer, n, 0);
+        printf("%d\n", n);
+        if (n < IMG_BUFFER_SIZE) {
+            break;
+        }
+    }
+    fclose(fd);
+    //nanosleep(&interval, NULL);
 
     close(newsockfd);
     close(sockfd);

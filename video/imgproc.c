@@ -75,7 +75,9 @@ int jpeg_get_frame_details(unsigned char* imgbuf, int imgsz,
         } else if (identifier == JPEG_SOF0) {
             ptr += jpeg_parse_sof(++ptr, p_jframe);
         } else if (identifier == JPEG_SOS) {
-            ptr += jpeg_parse_sos(++ptr, p_jframe);
+            ptr += jpeg_parse_sos(++ptr, p_jframe) - 2;
+            ptr[0] = 0xFF;
+            ptr[1] = JPEG_SOI;
             break;
         } else if (identifier == JPEG_SOI) {
             ptr += 1;

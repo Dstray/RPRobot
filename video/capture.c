@@ -593,10 +593,10 @@ int main(int argc, char** argv) {
     start_capturing(fd, io);
     while (frame_count--) {
         imgbuf = capture(fd, io);
-        CLEAR(jframe);
-        jpeg_get_frame_details(imgbuf->start, imgbuf->length, &jframe);
-        printf("data size: %d, q table size: %d\n", jframe.data_size, jframe.qt_size);
-        printf("w: %d, h: %d, ri: %d\n", jframe.width, jframe.height, jframe.restart_interval);
+        //CLEAR(jframe);
+        //jpeg_get_frame_details(imgbuf->start, imgbuf->length, &jframe);
+        //printf("data size: %d, q table size: %d\n", jframe.data_size, jframe.qt_size);
+        //printf("w: %d, h: %d, ri: %d\n", jframe.width, jframe.height, jframe.restart_interval);
     }
     stop_capturing(fd, io);
     close_device(fd, io);

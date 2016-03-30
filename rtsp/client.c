@@ -1,7 +1,7 @@
 #include "rtsp.h"
 #include <netdb.h>
 
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 0x1000
 
 int main(int argc, char *argv[])
 {
@@ -31,10 +31,10 @@ int main(int argc, char *argv[])
         sizeof serv_addr) == -1) 
         errno_exit("connecting failed");
 
-    char buffer[RTP_PACKET_SIZE_MAX];
-    memset(buffer, 0, RTP_PACKET_SIZE_MAX);
+    unsigned char buffer[BUFFER_SIZE];
+    memset(buffer, 0, BUFFER_SIZE);
 
-    int n;
+    int n, cnt = 1;/*
     FILE* fd = fopen("frame.rcv", "wb");
     while (1) {
         if ((n = recv(sockfd, buffer, RTP_PACKET_SIZE_MAX, 0)) == -1) 
@@ -42,6 +42,14 @@ int main(int argc, char *argv[])
         if (n <= 2)
             break;
         fwrite(buffer, 1, n, fd);
+    }
+    fclose(fd);*/
+    FILE* fd = fopen("frame.rcv", "wb");
+    while(1) {
+        n = recv(sockfd, buffer, BUFFER_SIZE, 0);
+        fwrite(buffer, 1, n, fd);
+        if (n < BUFFER_SIZE)
+            break;
     }
     fclose(fd);
 

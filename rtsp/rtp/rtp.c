@@ -61,12 +61,12 @@ u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts, u_int32 ssrc
     rtphdr.pt = RTP_PT_JPEG;
     rtphdr.seq = htons(start_seq);
     rtphdr.ts = htonl(ts);
-    rtphdr.ssrc = ssrc;printf("%02x\n", *(u_int8*)(&rtphdr));
+    rtphdr.ssrc = htonl(ssrc);
 
     /* Initialize JPEG header
      */
     jpghdr.tspec = RTP_JPEG_TYPESPEC;
-    jpghdr.off = 0;
+    jpghdr.off = offset;
     jpghdr.type = RTP_JPEG_TYPE | ((dri != 0) ? RTP_JPEG_RESTART : 0);
     jpghdr.q = q;
     jpghdr.width = p_jframe->width / 8;
@@ -86,7 +86,7 @@ u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts, u_int32 ssrc
     if (q >= 128) {
         qtblhdr.mbz = 0;
         qtblhdr.precision = 0; /* This code uses 8 bit tables only */
-        qtblhdr.length = 2 * qt_len;  /* 2 64-byte tables */
+        qtblhdr.length = htons(2 * qt_len);  /* 2 64-byte tables */
     }
 
     while (bytes_left > 0) {
@@ -99,7 +99,7 @@ u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts, u_int32 ssrc
             ptr += sizeof(rsthdr);
         }
 
-        if (q >= 128 && jpghdr.off == 0) {
+        if (q >= 128 && offset == 0) {
             memcpy(ptr, &qtblhdr, sizeof(qtblhdr));
             ptr += sizeof(qtblhdr);
             memcpy(ptr, p_jframe->lqt, qt_len);
@@ -123,11 +123,12 @@ u_int16 rtp_send_jframe(int sock_fd, u_int16 start_seq, u_int32 ts, u_int32 ssrc
             *(u_int16*)(&packet_buf[2]) = htons((u_int16)pkt_len - 4);
             memcpy(packet_buf + 4, &rtphdr, RTP_HDR_SIZE);
         }
-        memcpy(ptr, p_jframe->scan_data + jpghdr.off, data_len);
+        memcpy(ptr, p_jframe->scan_data + offset, data_len);
 
         send(sock_fd, packet_buf, pkt_len, 0);
 
-        jpghdr.off += data_len;
+        offset += data_len; 
+        jpghdr.off = htonl(offset) >> 8;
         bytes_left -= data_len;
         rtphdr.seq = htons(++start_seq);
     }

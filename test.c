@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     init_device(fd, dev_name, io, 4);
     start_capturing(fd, io);
 
-    if (argc < 2)
+    if (argc < 3)
         exception_exit("No port", "provided");
     int sockfd;
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         errno_exit("accepting failed.");
 
     unsigned char* pkg_start;
-    int pkg_left, cnt = 3000, seq;
+    int pkg_left, cnt = atoi(argv[2]), seq;
     struct buffer* imgbuf;
     unsigned char pkgbuf[IMG_PACKAGE_SIZE] = {0};
     while (cnt--) {

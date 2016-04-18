@@ -30,12 +30,12 @@ open_audio_device (const char *name, int sample_rate) {
 }
 
 void
-process_input (void) {
+process_input (int fd) {
     short buffer[1024];
 
     int len, i, level;
 
-    if ((l = read(fd, buffer, sizeof buffer)) == -1) {
+    if ((len = read(fd, buffer, sizeof buffer)) == -1) {
         errno_report("Audio read");
         return;
     }

@@ -8,6 +8,7 @@
 #define __RECORDING_H__ 1
 
 #include "../common/common.h"
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/soundcard.h>
 

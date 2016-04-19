@@ -3,7 +3,6 @@
 static char*            dev_name = "/dev/dsp";
 static struct buffer*   buffers;
 static unsigned         n_buffers = 0;
-static short            buffer[WAV_BUFFER_SIZE];
 static int              sample_rate = 48000;
 
 static int
@@ -44,22 +43,22 @@ oss_init_device(int fd, int buf_size) {
     if (!buffers)
         exception_exit("Failed to alloc space for buffers", "");
     buffers[0].length = buf_size;
-    buffers[0].start = buffer;
+    buffers[0].start = malloc(buf_size);
+    if (!buffers[0].start)
+        exception_exit("Failed to alloc space for buffers", "");
 }
 
 static struct buffer* 
 oss_record(int fd) {
-    void *buf = buffers[0].start;
-    if ((buffers[0].length = read(fd, buf, sizeof buf)) == -1) {
+    if ((buffers[0].length = read(fd, buffers[0].start, buffers[0].length)) == -1)
         errno_report("Audio read");
-        return;
-    }
+    //
 }
 
 void oss_close_device(fd) {
-    /*int i;
+    int i;
     for (i = 0; i != n_buffers; i++)
-        free(buffers[i].start);*/
+        free(buffers[i].start);
     free(buffers);
     // Close the device
     if (close(fd) == -1)
@@ -99,6 +98,8 @@ main (int argc, char *argv[])
             printf (".");
         printf ("\r");
         fflush (stdout);
+
+        wavbuf->length = WAV_BUFFER_SIZE;
     }
 
     return 0;

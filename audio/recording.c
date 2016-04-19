@@ -36,7 +36,7 @@ oss_init_device(int fd, int buf_size) {
     if (ioctl (fd, SNDCTL_DSP_SPEED, &sample_rate) == -1)
         errno_exit("SNDCTL_DSP_SPEED");
 
-    printf("Sample rate: %dHz", sample_rate);
+    printf("Sample rate: %dHz\n", sample_rate);
 
     n_buffers = 1;
     buffers = calloc(n_buffers, sizeof(*buffers));
@@ -52,7 +52,7 @@ static struct buffer*
 oss_record(int fd) {
     if ((buffers[0].length = read(fd, buffers[0].start, buffers[0].length)) == -1)
         errno_report("Audio read");
-    //
+    return buffers;
 }
 
 void oss_close_device(fd) {
@@ -101,6 +101,8 @@ main (int argc, char *argv[])
 
         wavbuf->length = WAV_BUFFER_SIZE;
     }
+
+    oss_close_device(fd);
 
     return 0;
 }

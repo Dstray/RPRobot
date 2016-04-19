@@ -3,7 +3,7 @@
 
 static char*            dev_name = "/dev/video0";
 static enum io_method   io = IO_METHOD_MMAP;
-struct buffer*          buffers;
+static struct buffer*   buffers;
 static unsigned         n_buffers = 0;
 static int              frame_count = 10;
 static int              frames_per_sec = 30;

@@ -1,15 +1,25 @@
 #include "recording.h"
 
+static char*            dev_name = "/dev/dsp";
+static struct buffer*   buffers;
+static unsigned         n_buffers = 0;
+static int              sample_rate = 48000;
+
 static int
-open_audio_device (const char *name, int sample_rate) {
-	int tmp, fd;
+oss_open_device(const char *name) {
+	int fd;
 
     if ((fd = open(name, O_RDONLY, 0)) == -1) {
         perror(name);
         exit(EXIT_FAILURE);
     }
 
-    tmp = AFMT_S16_NE;		/* Native 16 bits */
+    return fd;
+}
+
+static void
+oss_init_device(int fd, int buf_size) {
+    int tmp = AFMT_S16_NE;      /* Native 16 bits */
     if (ioctl(fd, SNDCTL_DSP_SETFMT, &tmp) == -1)
         errno_exit("SNDCTL_DSP_SETFMT");
 
@@ -26,57 +36,70 @@ open_audio_device (const char *name, int sample_rate) {
     if (ioctl (fd, SNDCTL_DSP_SPEED, &sample_rate) == -1)
         errno_exit("SNDCTL_DSP_SPEED");
 
-    return fd;
+    pritnf("Sample rate: %dHz", sample_rate);
+
+    n_buffers = 1;
+    buffers = calloc(n_buffers, sizeof(*buffers));
+    if (!buffers)
+        exception_exit("Failed to alloc space for buffers", "");
+    buffers[0].length = buf_size;
+    buffers[0].start = malloc(buf_size);
+    if (!buffers[0].start)
+        exception_exit("Failed to alloc space for buffers", "");
 }
 
-void
-process_input (int fd) {
-    short buffer[1024];
-
-    int len, i, level;
-
-    if ((len = read(fd, buffer, sizeof buffer)) == -1) {
+static struct buffer* 
+oss_record(int fd) {
+    if ((buffers[0].length = read(fd, buffers[0].start, sizeof buffer)) == -1) {
         errno_report("Audio read");
         return;
     }
+}
 
-    len /= 2;
-
-    level = 0;
-
-    for (i = 0; i < len; i++)
-    {
-        int v = buffer[i];
-
-        if (v < 0)
-            v = -v;			/* abs */
-
-        if (v > level)
-            level = v;
-    }
-
-    level = (level + 1) / 1024;
-
-    for (i = 0; i < level; i++)
-        printf ("*");
-    for (i = level; i < 32; i++)
-        printf (".");
-    printf ("\r");
-    fflush (stdout);
+void oss_close_device(fd) {
+    int i;
+    for (i = 0; i != n_buffers; i++)
+        free(buffers[i].start);
+    free(buffers);
+    // Close the device
+    if (close(fd) == -1)
+        errno_exit("Device Close");
 }
 
 int
 main (int argc, char *argv[])
 {
-    char *name_in = "/dev/dsp";
     if (argc > 1)
-        name_in = argv[1];
-    int fd = open_audio_device(name_in, 48000);
+        dev_name = argv[1];
+    int fd = oss_open_device(dev_name);
+    oss_init_device(fd, 0x0400);
 
-    while (1)
-        process_input(fd);
+    struct buffer* wavbuf;
+    int level, i, len;
+    while (1) {
+        wavbuf = oss_record(fd);
+        short *buf = (short *)wavbuf.start;
 
-    close(fd);
+        level = 0;
+        len = wavbuf.length / 2;
+        for (i = 0; i < len; i++) {
+            int v = buf[i];
+
+            if (v < 0)
+                v = -v;         /* abs */
+
+            if (v > level)
+                level = v;
+        }
+        level = (level + 1) / 1024;
+
+        for (i = 0; i < level; i++)
+            printf ("*");
+        for (i = level; i < 32; i++)
+            printf (".");
+        printf ("\r");
+        fflush (stdout);
+    }
 
     return 0;
 }

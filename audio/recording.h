@@ -12,6 +12,6 @@
 #include <unistd.h>
 #include <sys/soundcard.h>
 
-
+#define WAV_BUFFER_SIZE 0x0400
 
 #endif /* recording.h */

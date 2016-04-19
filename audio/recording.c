@@ -24,19 +24,19 @@ oss_init_device(int fd, int buf_size) {
         errno_exit("SNDCTL_DSP_SETFMT");
 
     if (tmp != AFMT_S16_NE)
-        exception_exit(name, "doesn't support the 16 bit sample format.");
+        exception_exit(dev_name, "doesn't support the 16 bit sample format.");
 
     tmp = 1;
     if (ioctl(fd, SNDCTL_DSP_CHANNELS, &tmp) == -1)
         errno_exit("SNDCTL_DSP_CHANNELS");
 
     if (tmp != 1)
-        exception_exit(name, "doesn't support mono mode.");
+        exception_exit(dev_name, "doesn't support mono mode.");
 
     if (ioctl (fd, SNDCTL_DSP_SPEED, &sample_rate) == -1)
         errno_exit("SNDCTL_DSP_SPEED");
 
-    pritnf("Sample rate: %dHz", sample_rate);
+    printf("Sample rate: %dHz", sample_rate);
 
     n_buffers = 1;
     buffers = calloc(n_buffers, sizeof(*buffers));
@@ -50,7 +50,8 @@ oss_init_device(int fd, int buf_size) {
 
 static struct buffer* 
 oss_record(int fd) {
-    if ((buffers[0].length = read(fd, buffers[0].start, sizeof buffer)) == -1) {
+    void *buf = buffers[0].start;
+    if ((buffers[0].length = read(fd, buf, sizeof buf)) == -1) {
         errno_report("Audio read");
         return;
     }
@@ -78,10 +79,10 @@ main (int argc, char *argv[])
     int level, i, len;
     while (1) {
         wavbuf = oss_record(fd);
-        short *buf = (short *)wavbuf.start;
+        short *buf = (short *)wavbuf->start;
 
         level = 0;
-        len = wavbuf.length / 2;
+        len = wavbuf->length / 2;
         for (i = 0; i < len; i++) {
             int v = buf[i];
 

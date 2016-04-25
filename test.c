@@ -15,7 +15,8 @@ int main(int argc, char *argv[])
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-    int sockfd;
+    int sockfd, fd;
+    char* dev_name;
 
     int ret, vport;
     if (argc < 3)
@@ -27,9 +28,9 @@ int main(int argc, char *argv[])
     if ((ret = fork()) == -1)
         errno_exit("fork");
     else if (ret == 0) {
-        char* dev_name = "/dev/video0";
+        dev_name = "/dev/video0";
         enum io_method io = IO_METHOD_MMAP;
-        int fd = open_device(dev_name);
+        fd = open_device(dev_name);
         init_device(fd, dev_name, io, 4);
         start_capturing(fd, io);
 
@@ -78,10 +79,15 @@ int main(int argc, char *argv[])
             memcpy(pkgbuf + 4, pkg_start, pkg_left);
             send(newsockfd, pkgbuf, pkg_left + 4, 0);
         }
+        close(sockfd);
 
         stop_capturing(fd, io);
         close_device(fd, io);
     } else {
+        dev_name = "/dev/dsp";
+        fd = oss_open_device(dev_name);
+        oss_init_device(fd, WAV_PACKAGE_SIZE);
+
         if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
             errno_exit("opening socket failed");
 
@@ -97,8 +103,39 @@ int main(int argc, char *argv[])
         printf("Received packet from %s:%d\nData: %s\n", 
             inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), pkgbuf);
 
+        struct buffer* wavbuf;
+        int cnt = atoi(argv[2]) / 10;
+        while (cnt--) {
+            wavbuf = oss_record(fd);
+
+            if (sendto(sockfd, wavbuf.start, wavbuf.length, 0,
+                (struct sockaddr *) &cli_addr, &cli_len) == -1)
+                errno_exit("sendto failed");
+
+            int level = 0, len = wavbuf->length / 2;
+            for (i = 0; i < len; i++) {
+                int v = buf[i];
+
+                if (v < 0)
+                    v = -v;         /* abs */
+
+                if (v > level)
+                    level = v;
+            }
+            level = (level + 1) / 1024;
+
+            for (i = 0; i < level; i++)
+                printf ("*");
+            for (i = level; i < 32; i++)
+                printf (".");
+            printf ("\r");
+            fflush (stdout);
+
+            wavbuf->length = WAV_BUFFER_SIZE;
+        } 
+
         close(sockfd);
-        wait(&ret);
+        //wait(&ret);
     }
 
     return 0;

@@ -64,7 +64,7 @@ void oss_close_device(fd) {
     if (close(fd) == -1)
         errno_exit("Device Close");
 }
-
+/*
 int
 main (int argc, char *argv[])
 {
@@ -105,4 +105,4 @@ main (int argc, char *argv[])
     oss_close_device(fd);
 
     return 0;
-}
+}*/

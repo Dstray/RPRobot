@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
             inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), pkgbuf);
 
         struct buffer* wavbuf;
-        int cnt = atoi(argv[2]) / 10;
+        int cnt = atoi(argv[2]) * 10;
         while (cnt--) {
             wavbuf = oss_record(fd);
 
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
         } 
 
         close(sockfd);
-        //wait(&ret);
+        wait(&ret);
     }
 
     return 0;

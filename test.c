@@ -1,4 +1,5 @@
 #include "video/capture.h"
+#include "audio/recording.h"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -108,11 +109,12 @@ int main(int argc, char *argv[])
         while (cnt--) {
             wavbuf = oss_record(fd);
 
-            if (sendto(sockfd, wavbuf.start, wavbuf.length, 0,
-                (struct sockaddr *) &cli_addr, &cli_len) == -1)
+            if (sendto(sockfd, wavbuf->start, wavbuf->length, 0,
+                (struct sockaddr *) &cli_addr, cli_len) == -1)
                 errno_exit("sendto failed");
 
-            int level = 0, len = wavbuf->length / 2;
+            int level = 0, len = wavbuf->length / 2, i;
+            short *buf = (short *)wavbuf->start;
             for (i = 0; i < len; i++) {
                 int v = buf[i];
 
@@ -131,7 +133,7 @@ int main(int argc, char *argv[])
             printf ("\r");
             fflush (stdout);
 
-            wavbuf->length = WAV_BUFFER_SIZE;
+            wavbuf->length = WAV_PACKAGE_SIZE;
         } 
 
         close(sockfd);

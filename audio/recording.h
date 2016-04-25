@@ -14,4 +14,9 @@
 
 #define WAV_BUFFER_SIZE 0x0400
 
+extern int oss_open_device(const char *name);
+extern void oss_init_device(int fd, int buf_size);
+extern struct buffer* oss_record(int fd);
+extern void oss_close_device(int fd);
+
 #endif /* recording.h */

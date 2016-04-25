@@ -5,7 +5,7 @@ static struct buffer*   buffers;
 static unsigned         n_buffers = 0;
 static int              sample_rate = 48000;
 
-static int
+int
 oss_open_device(const char *name) {
 	int fd;
 
@@ -17,7 +17,7 @@ oss_open_device(const char *name) {
     return fd;
 }
 
-static void
+void
 oss_init_device(int fd, int buf_size) {
     int tmp = AFMT_S16_NE;      /* Native 16 bits */
     if (ioctl(fd, SNDCTL_DSP_SETFMT, &tmp) == -1)
@@ -48,14 +48,15 @@ oss_init_device(int fd, int buf_size) {
         exception_exit("Failed to alloc space for buffers", "");
 }
 
-static struct buffer* 
+struct buffer* 
 oss_record(int fd) {
     if ((buffers[0].length = read(fd, buffers[0].start, buffers[0].length)) == -1)
         errno_report("Audio read");
     return buffers;
 }
 
-void oss_close_device(fd) {
+void
+oss_close_device(int fd) {
     int i;
     for (i = 0; i != n_buffers; i++)
         free(buffers[i].start);
@@ -85,7 +86,7 @@ main (int argc, char *argv[])
             int v = buf[i];
 
             if (v < 0)
-                v = -v;         /* abs */
+                v = -v;         // abs
 
             if (v > level)
                 level = v;

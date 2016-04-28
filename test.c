@@ -8,13 +8,31 @@
 
 #define IMG_PACKAGE_SIZE 0x1000
 #define WAV_PACKAGE_SIZE 0x0400
+#define CTL_PACKAGE_SIZE 0x0100
+#define PORT_VIDEO 555
+#define PORT_CTRL (PORT_VIDEO + 10000)
+#define PORT_AUDIO (PORT_CTRL + 1)
+
+void create_response(unsigned char* pkg, int* plen, void* sig) {
+    printf("len: %d\n", *plen);
+    *plen = 0;
+    if (pkg[1] == 1) {
+        short tmp = htons(PORT_VIDEO);
+        memcpy(pkg, &tmp, sizeof tmp);
+        tmp = htons(PORT_AUDIO);
+        memcpy(pkg + 2, &tmp, sizeof tmp);
+        *plen = 2 * (2 * sizeof tmp);
+    } else if (pkg[0] == 0) {
+        *(char*)sig = 2;
+    }
+}
 
 int main(int argc, char *argv[])
 {
     // Shared Memory
     void* shm;
     int shmid;
-    if ((shmid = shmget((key_t)1338, 1, 0666 | IPC_CREAT | IPC_EXCL)) == -1)
+    if ((shmid = shmget((key_t)1338, 1, 0666 | IPC_CREAT)) == -1) // IPC_EXCL
         errno_exit("shmget failed");
     if ((shm = shmat(shmid, NULL, 0)) == (void*)-1)
         errno_exit("shmat failed");
@@ -30,11 +48,11 @@ int main(int argc, char *argv[])
     int sockfd, fd;
     char* dev_name;
 
-    int ret, vport;
+    int ret, vport;/*
     if (argc < 2)
         exception_exit("No port", "provided");
     else
-        vport = atoi(argv[1]);
+        vport = atoi(argv[1]);*/
 
 
     if ((ret = fork()) == -1)
@@ -52,7 +70,7 @@ int main(int argc, char *argv[])
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
             errno_exit("opening socket failed");
 
-        serv_addr.sin_port = htons(vport);
+        serv_addr.sin_port = htons(PORT_VIDEO);
         if (bind(sockfd, (struct sockaddr *) &serv_addr,
             sizeof serv_addr) == -1)
             errno_exit("binding failed");
@@ -118,7 +136,7 @@ int main(int argc, char *argv[])
             if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
                 errno_exit("opening socket failed");
 
-            serv_addr.sin_port = htons(vport + 10000);
+            serv_addr.sin_port = htons(PORT_AUDIO);
             if (bind(sockfd, (struct sockaddr *) &serv_addr,
                 sizeof(serv_addr)) == -1)
                 errno_exit("binding failed");
@@ -170,15 +188,31 @@ int main(int argc, char *argv[])
             return 0; // Audio Process end
         } else {
             // === Main Process ===
+            if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+                errno_exit("opening socket failed");
+
+            serv_addr.sin_port = htons(PORT_CTRL);
+            if (bind(sockfd, (struct sockaddr *) &serv_addr,
+                sizeof(serv_addr)) == -1)
+                errno_exit("binding failed");
+
+            unsigned char pkgbuf[CTL_PACKAGE_SIZE] = {0};
             while (1) {
-                scanf("%d", (char*)shm);
-                printf("main: %d\n", (int)*(char*)shm);
+                int len;
+                if ((len = recvfrom(sockfd, pkgbuf, CTL_PACKAGE_SIZE, 0,
+                    (struct sockaddr *) &cli_addr, &cli_len)) == -1)
+                    errno_exit("recvfrom failed");
+                create_response(pkgbuf, &len, shm);
+                if (len && sendto(sockfd, pkgbuf, len, 0,
+                    (struct sockaddr *) &cli_addr, cli_len) == -1)
+                    errno_exit("sendto failed");
             }
+
+            if (shmdt(shm) == -1)
+                errno_exit("shmdt failed");
         }
     }
 
-    if (shmdt(shm) == -1)
-        errno_exit("shmdt failed");
     if (shmctl(shmid, IPC_RMID, 0) == -1)
         errno_exit("shmctl failed");
 

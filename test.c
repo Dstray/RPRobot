@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     else if (ret == 0) {
         if ((shm = shmat(shmid, NULL, 0)) == (void*)-1)
             errno_exit("shmat failed");
-        //=== Video Process ===
+        // === Video Process ===
         dev_name = "/dev/video0";
         enum io_method io = IO_METHOD_MMAP;
         fd = open_device(dev_name);
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
             errno_exit("listening failed");
 
         int newsockfd;
-        while (1) {
+        while (*(char*)shm < 3) {
             if ((newsockfd = accept(sockfd, 
                 (struct sockaddr *) &cli_addr, &cli_len)) == -1) 
                 errno_exit("accepting failed");
@@ -95,12 +95,14 @@ int main(int argc, char *argv[])
                 memcpy(pkgbuf + 4, pkg_start, pkg_left);
                 send(newsockfd, pkgbuf, pkg_left + 4, 0);
             }
-            shm--;
+            --shm;
         }
         close(sockfd);
 
         stop_capturing(fd, io);
         close_device(fd, io);
+        if (shmdt(shm) == -1)
+            errno_exit("shmdt failed");
         return 0; // Video Process end
     } else {
         if ((ret = fork()) == -1)
@@ -122,7 +124,7 @@ int main(int argc, char *argv[])
                 errno_exit("binding failed");
 
             unsigned char pkgbuf[WAV_PACKAGE_SIZE] = {0};
-            while (1) {
+            while (*(char*)shm < 3) {
                 if (recvfrom(sockfd, pkgbuf, WAV_PACKAGE_SIZE, 0,
                     (struct sockaddr *) &cli_addr, &cli_len) == -1)
                     errno_exit("recvfrom failed");
@@ -159,18 +161,24 @@ int main(int argc, char *argv[])
                     */
                     wavbuf->length = WAV_PACKAGE_SIZE;
                 }
-                shm--;
+                --shm;
             }
 
             close(sockfd);
+            if (shmdt(shm) == -1)
+                errno_exit("shmdt failed");
             return 0; // Audio Process end
         } else {
             // === Main Process ===
-            while (1)
+            while (1) {
                 scanf("%d", (char*)shm);
+                printf("main: %d\n", (int)*(char*)shm);
+            }
         }
     }
 
+    if (shmdt(shm) == -1)
+        errno_exit("shmdt failed");
     if (shmctl(shmid, IPC_RMID, 0) == -1)
         errno_exit("shmctl failed");
 

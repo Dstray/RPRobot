@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
                     inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), pkgbuf);
 
                 struct buffer* wavbuf;
-                while (*(char*)shm == 0) {
+                while (*(char*)shm == 0) {printf("%d", (int)*(char*)shm);
                     wavbuf = oss_record(fd);
 
                     if (sendto(sockfd, wavbuf->start, wavbuf->length, 0,

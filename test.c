@@ -14,7 +14,7 @@
 #define PORT_AUDIO (PORT_CTRL + 1)
 
 void create_response(unsigned char* pkg, int* plen, void* sig) {
-    printf("len: %d\n", *plen);
+    printf("len: %d(%d)\n", *plen, (int)pkg[1]);
     *plen = 0;
     if (pkg[1] == 1) {
         short tmp = htons(PORT_VIDEO);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
             errno_exit("listening failed");
 
         int newsockfd;
-        while (*(char*)shm < 3) {
+        while (*(char*)shm < 3) {printf("$video: %d\n", (int)*(char*)shm);
             if ((newsockfd = accept(sockfd, 
                 (struct sockaddr *) &cli_addr, &cli_len)) == -1) 
                 errno_exit("accepting failed");
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
                 memcpy(pkgbuf + 4, pkg_start, pkg_left);
                 send(newsockfd, pkgbuf, pkg_left + 4, 0);
             }
-            --shm;
+            --shm;printf("^video: %d\n", (int)*(char*)shm);
         }
         close(sockfd);
 
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
                 errno_exit("binding failed");
 
             unsigned char pkgbuf[WAV_PACKAGE_SIZE] = {0};
-            while (*(char*)shm < 3) {
+            while (*(char*)shm < 3) {printf("$audio: %d\n", (int)*(char*)shm);
                 if (recvfrom(sockfd, pkgbuf, WAV_PACKAGE_SIZE, 0,
                     (struct sockaddr *) &cli_addr, &cli_len) == -1)
                     errno_exit("recvfrom failed");
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
                     */
                     wavbuf->length = WAV_PACKAGE_SIZE;
                 }
-                --shm;
+                --shm;printf("^audio: %d\n", (int)*(char*)shm);
             }
 
             close(sockfd);
@@ -199,6 +199,7 @@ int main(int argc, char *argv[])
             unsigned char pkgbuf[CTL_PACKAGE_SIZE] = {0};
             while (1) {
                 int len;
+                printf("$main: %d\n", (int)*(char*)shm);
                 if ((len = recvfrom(sockfd, pkgbuf, CTL_PACKAGE_SIZE, 0,
                     (struct sockaddr *) &cli_addr, &cli_len)) == -1)
                     errno_exit("recvfrom failed");
@@ -206,6 +207,7 @@ int main(int argc, char *argv[])
                 if (len && sendto(sockfd, pkgbuf, len, 0,
                     (struct sockaddr *) &cli_addr, cli_len) == -1)
                     errno_exit("sendto failed");
+                printf("^main: %d\n", (int)*(char*)shm);
             }
 
             if (shmdt(shm) == -1)

@@ -22,7 +22,7 @@ void create_response(unsigned char* pkg, int* plen, void* sig) {
         tmp = htons(PORT_AUDIO);
         memcpy(pkg + 2, &tmp, sizeof tmp);
         *plen = 2 * (2 * sizeof tmp);
-    } else if (pkg[0] == 0) {
+    } else if (pkg[1] == 0) {
         *(char*)sig = 2;
     }
 }

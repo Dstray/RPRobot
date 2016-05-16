@@ -13,7 +13,7 @@
 #define PORT_CTRL (PORT_VIDEO + 10000)
 #define PORT_AUDIO (PORT_CTRL + 1)
 
-void create_response(unsigned char* pkg, int* plen, void* sig) {
+void process_request(unsigned char* pkg, int* plen, void* sig, int fd) {
     //printf("len: %d(%d)\n", *plen, (int)pkg[1]);
     *plen = 0;
     if (pkg[1] == 1) {
@@ -26,6 +26,7 @@ void create_response(unsigned char* pkg, int* plen, void* sig) {
         *(char*)sig = 2;
     } else if (pkg[1] == 2) {
         printf("state: %d\n", (int)(pkg[4]));
+        write(fd, pkg + 4, 1);
     }
 }
 
@@ -190,6 +191,12 @@ int main(int argc, char *argv[])
             return 0; // Audio Process end
         } else {
             // === Main Process ===
+            dev_name = "/dev/ttyATH0";
+            if ((fd = open(dev_name, O_WRONLY, 0)) == -1) {
+                perror(dev_name);
+                exit(EXIT_FAILURE);
+            }
+
             if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
                 errno_exit("opening socket failed");
 
@@ -205,7 +212,7 @@ int main(int argc, char *argv[])
                 if ((len = recvfrom(sockfd, pkgbuf, CTL_PACKAGE_SIZE, 0,
                     (struct sockaddr *) &cli_addr, &cli_len)) == -1)
                     errno_exit("recvfrom failed");
-                create_response(pkgbuf, &len, shm);
+                process_request(pkgbuf, &len, shm, fd);
                 if (len && sendto(sockfd, pkgbuf, len, 0,
                     (struct sockaddr *) &cli_addr, cli_len) == -1)
                     errno_exit("sendto failed");
@@ -214,6 +221,8 @@ int main(int argc, char *argv[])
 
             if (shmdt(shm) == -1)
                 errno_exit("shmdt failed");
+            if (close(fd) == -1)
+                errno_exit("TTY Device Close");
         }
     }
 

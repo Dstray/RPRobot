@@ -24,8 +24,9 @@ void process_request(unsigned char* pkg, int* plen, void* sig, int fd) {
         *plen = 2 * (2 * sizeof tmp);
     } else if (pkg[1] == 0) {
         *(char*)sig = 2;
+        write(fd, pkg, 1);
     } else if (pkg[1] == 2) {
-        printf("state: %d\n", (int)(pkg[4]));
+        //printf("state: %d\n", (int)(pkg[4]));
         write(fd, pkg + 4, 1);
     }
 }

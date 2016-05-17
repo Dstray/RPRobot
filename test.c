@@ -15,19 +15,30 @@
 
 void process_request(unsigned char* pkg, int* plen, void* sig, int fd) {
     //printf("len: %d(%d)\n", *plen, (int)pkg[1]);
+    unsigned char *pkg_end = pkg + *plen, p = pkg;
     *plen = 0;
-    if (pkg[1] == 1) {
-        short tmp = htons(PORT_VIDEO);
-        memcpy(pkg, &tmp, sizeof tmp);
-        tmp = htons(PORT_AUDIO);
-        memcpy(pkg + 2, &tmp, sizeof tmp);
-        *plen = 2 * (2 * sizeof tmp);
-    } else if (pkg[1] == 0) {
-        *(char*)sig = 2;
-        write(fd, pkg, 1);
-    } else if (pkg[1] == 2) {
-        //printf("state: %d\n", (int)(pkg[4]));
-        write(fd, pkg + 4, 1);
+    while (p != pkg_end) {
+        if (*(p++) == '$') {
+            if (*p == 1) {
+                short tmp = htons(PORT_VIDEO);
+                memcpy(pkg, &tmp, sizeof tmp);
+                tmp = htons(PORT_AUDIO);
+                memcpy(pkg + 2, &tmp, sizeof tmp);
+                *plen = 2 * (2 * sizeof tmp);
+            } else if (*p == 0) {
+                *(char*)sig = 2;
+                write(fd, p - 1, 1);
+                p++;
+            } else if (*p == 2) {
+                //printf("state: %d\n", (int)(pkg[4]));
+                write(fd, p + 3, 1);
+                p += 4;
+            } else if (*p == 3) {
+                *(p + 2) = ' ';
+                write(fd, p + 2, 3);
+                p += 5;
+            }
+        }
     }
 }
 

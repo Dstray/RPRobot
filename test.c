@@ -15,7 +15,7 @@
 
 void process_request(unsigned char* pkg, int* plen, void* sig, int fd) {
     //printf("len: %d(%d)\n", *plen, (int)pkg[1]);
-    unsigned char *pkg_end = pkg + *plen, p = pkg;
+    unsigned char *pkg_end = pkg + *plen, *p = pkg;
     *plen = 0;
     while (p != pkg_end) {
         if (*(p++) == '$') {
